@@ -62,7 +62,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef>Job ID</th>
               <td mat-cell *matCellDef="let job">
-                <strong class="job-id">#JOB-{{ job.id }}</strong>
+                <a [routerLink]="['/jobs', job.id]" class="clickable-id">
+                  <strong class="job-id">#JOB-{{ job.id }}</strong>
+                </a>
               </td>
             </ng-container>
 
@@ -153,6 +155,10 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     .job-table { width: 100%; }
 
     .job-id { color: var(--accent-blue); }
+    .quotation-id { color: var(--accent-blue); }
+    .clickable-id { text-decoration: none; }
+    .clickable-id:hover .job-id,
+    .clickable-id:hover .quotation-id { text-decoration: underline; opacity: 0.8; }
 
     .brand-tag {
       color: var(--text-secondary);

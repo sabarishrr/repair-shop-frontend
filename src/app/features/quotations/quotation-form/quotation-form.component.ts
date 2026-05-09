@@ -15,6 +15,9 @@ import { QuotationService, Quotation } from '../../../core/services/quotation.se
 import { CustomerService } from '../../../core/services/customer.service';
 import { Customer } from '../../../core/models/customer.model';
 import { ProductService, Product } from '../../../core/services/product.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { CustomerFormComponent } from '../../customers/customer-form/customer-form.component';
+import { ProductFormComponent } from '../../products/product-form/product-form.component';
 
 @Component({
   selector: 'app-quotation-form',
@@ -22,7 +25,7 @@ import { ProductService, Product } from '../../../core/services/product.service'
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule,
-    MatButtonModule, MatIconModule, MatCardModule, MatDividerModule, MatSnackBarModule
+    MatButtonModule, MatIconModule, MatCardModule, MatDividerModule, MatSnackBarModule, MatDialogModule
   ],
   template: `
     <div class="page-container">
@@ -39,14 +42,19 @@ import { ProductService, Product } from '../../../core/services/product.service'
             <mat-card-title>Customer Information</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Select Customer</mat-label>
-              <mat-select formControlName="customer" required>
-                <mat-option *ngFor="let c of customers" [value]="c">
-                  {{c.name}} ({{c.phone}})
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+            <div class="customer-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Select Customer</mat-label>
+                <mat-select formControlName="customer" required>
+                  <mat-option *ngFor="let c of customers" [value]="c">
+                    {{c.name}} ({{c.phone}})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-stroked-button type="button" (click)="addCustomer()" class="inline-btn">
+                <mat-icon>person_add</mat-icon> New
+              </button>
+            </div>
           </mat-card-content>
         </mat-card>
 
@@ -94,9 +102,14 @@ import { ProductService, Product } from '../../../core/services/product.service'
               </div>
             </div>
 
-            <button mat-stroked-button color="primary" type="button" (click)="addItem()" class="add-item-btn">
-              <mat-icon>add</mat-icon> Add Line Item
-            </button>
+            <div class="product-actions">
+              <button mat-stroked-button color="primary" type="button" (click)="addItem()" class="add-item-btn">
+                <mat-icon>add</mat-icon> Add Line Item
+              </button>
+              <button mat-stroked-button color="accent" type="button" (click)="addNewProduct()" class="add-item-btn">
+                <mat-icon>inventory_2</mat-icon> New Product
+              </button>
+            </div>
           </mat-card-content>
         </mat-card>
 
@@ -157,6 +170,9 @@ import { ProductService, Product } from '../../../core/services/product.service'
     .item-row { display: flex; gap: 16px; align-items: flex-start; background: var(--hover-color); padding: 16px; border-radius: 8px; }
     .item-row mat-form-field { margin-bottom: -1.25em; }
     
+    .customer-row { display: flex; gap: 12px; align-items: flex-start; }
+    .inline-btn { height: 56px; margin-top: 0; }
+    
     .flex-1 { flex: 1; }
     .flex-2 { flex: 2; }
     .flex-3 { flex: 3; }
@@ -166,6 +182,7 @@ import { ProductService, Product } from '../../../core/services/product.service'
     .calc-label.bold { font-weight: 600; color: var(--text-color); font-size: 15px; }
     
     .add-item-btn { margin-top: 8px; }
+    .product-actions { display: flex; gap: 12px; }
     
     .bottom-section { display: flex; gap: 24px; }
     .terms-card { flex: 2; }
@@ -196,7 +213,8 @@ export class QuotationFormComponent implements OnInit {
     private svc: QuotationService,
     private customerSvc: CustomerService,
     private productSvc: ProductService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.form = this.fb.group({
       customer: [null, Validators.required],
@@ -204,6 +222,19 @@ export class QuotationFormComponent implements OnInit {
       paymentTerms: ['100% Advance Payment'],
       specificTerms: ['Items once sold will not be taken back.'],
       items: this.fb.array([])
+    });
+  }
+
+  addNewProduct() {
+    const dialogRef = this.dialog.open(ProductFormComponent, {
+      width: '550px',
+    });
+
+    dialogRef.afterClosed().subscribe((result: Product | undefined) => {
+      if (result) {
+        this.products.push(result);
+        this.snackBar.open('Product created and added to list!', 'OK', { duration: 3000 });
+      }
     });
   }
 
@@ -249,6 +280,20 @@ export class QuotationFormComponent implements OnInit {
     } else {
       this.addItem(); // add one empty row by default
     }
+  }
+
+  addCustomer() {
+    const dialogRef = this.dialog.open(CustomerFormComponent, {
+      width: '500px',
+    });
+
+    dialogRef.afterClosed().subscribe((result: Customer | undefined) => {
+      if (result) {
+        this.customers.push(result);
+        this.form.patchValue({ customer: result });
+        this.snackBar.open('Customer created!', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   createItemForm(): FormGroup {

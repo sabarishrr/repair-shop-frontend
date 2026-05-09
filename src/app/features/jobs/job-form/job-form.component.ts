@@ -20,7 +20,7 @@ import { UserService } from '../../../core/services/user.service';
 import { JOB_STATUSES } from '../../../core/models/job-sheet.model';
 import { Customer } from '../../../core/models/customer.model';
 import { User } from '../../../core/models/user.model';
-import { CustomerDialogComponent } from './customer-dialog.component';
+import { CustomerFormComponent } from '../../customers/customer-form/customer-form.component';
 
 @Component({
   selector: 'app-job-form',
@@ -347,8 +347,8 @@ export class JobFormComponent implements OnInit {
   }
 
   addCustomer() {
-    const dialogRef = this.dialog.open(CustomerDialogComponent, {
-      width: '440px',
+    const dialogRef = this.dialog.open(CustomerFormComponent, {
+      width: '500px',
     });
 
     dialogRef.afterClosed().subscribe((result: Customer | undefined) => {

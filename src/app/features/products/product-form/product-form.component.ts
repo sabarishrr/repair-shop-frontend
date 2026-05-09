@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { ProductService, Product } from '../../../core/services/product.service';
 
@@ -17,11 +18,11 @@ import { ProductService, Product } from '../../../core/services/product.service'
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatIconModule, MatDividerModule, MatCardModule, MatSnackBarModule
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatIconModule, MatDividerModule, MatCardModule, MatSnackBarModule, MatDialogModule
   ],
   template: `
-    <div class="page-container">
-      <div class="page-header">
+    <div [class.page-container]="!isDialog">
+      <div class="page-header" *ngIf="!isDialog">
         <div>
           <h1>{{ isEdit ? 'Edit Product' : 'Add New Product' }}</h1>
           <p>{{ isEdit ? 'Update product details' : 'Add a new product or service' }}</p>
@@ -32,9 +33,14 @@ import { ProductService, Product } from '../../../core/services/product.service'
         </a>
       </div>
 
-      <mat-card class="form-card">
-        <mat-card-content>
-          <form [formGroup]="form" (ngSubmit)="save()" class="product-form">
+      <h2 mat-dialog-title *ngIf="isDialog">
+        <mat-icon class="title-icon">inventory_2</mat-icon>
+        {{ isEdit ? 'Edit Product' : 'Add New Product' }}
+      </h2>
+
+      <mat-card [class.form-card]="!isDialog" [class.dialog-card]="isDialog">
+        <mat-dialog-content [class.mat-dialog-content]="isDialog">
+          <form [formGroup]="form" (ngSubmit)="save()" id="productForm" class="product-form">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Product Name</mat-label>
               <input matInput formControlName="name" autofocus required>
@@ -67,28 +73,42 @@ import { ProductService, Product } from '../../../core/services/product.service'
                     {{ rate }}%
                   </mat-option>
                   <mat-divider></mat-divider>
-                  <div class="add-gst-btn" (click)="addNewGst()">
+                  <div class="add-gst-btn" (click)="addNewGst($event)">
                     <mat-icon>add</mat-icon> Add New GST %
                   </div>
                 </mat-select>
                 <mat-icon matPrefix>percent</mat-icon>
               </mat-form-field>
             </div>
-
-            <div class="form-actions">
-              <a mat-stroked-button routerLink="/products">Cancel</a>
-              <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-                <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
-                {{ loading ? 'Saving...' : (isEdit ? 'Update Product' : 'Add Product') }}
-              </button>
-            </div>
           </form>
-        </mat-card-content>
+        </mat-dialog-content>
+
+        <mat-dialog-actions align="end" *ngIf="isDialog">
+          <button mat-button (click)="dialogRef.close()">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" form="productForm" [disabled]="loading">
+            <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+            {{ loading ? 'Saving...' : (isEdit ? 'Update' : 'Save Product') }}
+          </button>
+        </mat-dialog-actions>
+
+        <div class="form-actions" *ngIf="!isDialog">
+          <a mat-stroked-button routerLink="/products">Cancel</a>
+          <button mat-raised-button color="primary" type="submit" form="productForm" [disabled]="loading">
+            <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+            {{ loading ? 'Saving...' : (isEdit ? 'Update Product' : 'Add Product') }}
+          </button>
+        </div>
       </mat-card>
     </div>
   `,
   styles: [`
     .form-card { max-width: 600px; margin: 0 auto; }
+    
+    .dialog-card {
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+
     .product-form { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
     .full-width { width: 100%; }
     .row { display: flex; gap: 16px; }
@@ -96,7 +116,18 @@ import { ProductService, Product } from '../../../core/services/product.service'
     .add-gst-btn { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; color: var(--primary-color, #3f51b5); font-weight: 500; }
     .add-gst-btn:hover { background: rgba(0,0,0,0.04); }
     .add-gst-btn mat-icon { margin-right: 8px; font-size: 20px; width: 20px; height: 20px; }
-    .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+    
+    .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding: 16px 24px; }
+
+    .title-icon {
+      color: var(--accent-blue);
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    mat-dialog-content {
+      min-width: 450px;
+    }
   `]
 })
 export class ProductFormComponent implements OnInit {
@@ -105,14 +136,18 @@ export class ProductFormComponent implements OnInit {
   productId?: number;
   loading = false;
   gstRates: number[] = [0, 5, 12, 18, 28];
+  isDialog = false;
 
   constructor(
     private fb: FormBuilder,
     private svc: ProductService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    @Optional() public dialogRef: MatDialogRef<ProductFormComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    this.isDialog = !!this.dialogRef;
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
@@ -129,11 +164,17 @@ export class ProductFormComponent implements OnInit {
       this.gstRates = [...new Set([...this.gstRates, ...parsed])].sort((a, b) => a - b);
     }
 
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
+    if (this.isDialog && this.data?.id) {
       this.isEdit = true;
-      this.productId = +idParam;
+      this.productId = this.data.id;
       this.loadProduct();
+    } else {
+      const idParam = this.route.snapshot.paramMap.get('id');
+      if (idParam) {
+        this.isEdit = true;
+        this.productId = +idParam;
+        this.loadProduct();
+      }
     }
   }
 
@@ -148,12 +189,14 @@ export class ProductFormComponent implements OnInit {
       },
       error: () => {
         this.snackBar.open('Product not found', 'OK', { duration: 3000 });
-        this.router.navigate(['/products']);
+        if (!this.isDialog) this.router.navigate(['/products']);
+        else this.dialogRef.close();
       }
     });
   }
 
-  addNewGst() {
+  addNewGst(event: MouseEvent) {
+    event.stopPropagation();
     const rateStr = prompt('Enter new GST Percentage (e.g., 15):');
     if (rateStr && !isNaN(+rateStr)) {
       const rate = parseFloat(rateStr);
@@ -181,9 +224,13 @@ export class ProductFormComponent implements OnInit {
       : this.svc.create(this.form.value as Product);
 
     req.subscribe({
-      next: () => {
+      next: (product) => {
         this.snackBar.open(`Product ${this.isEdit ? 'updated' : 'added'} successfully!`, 'OK', { duration: 3000 });
-        this.router.navigate(['/products']);
+        if (this.isDialog) {
+          this.dialogRef.close(product);
+        } else {
+          this.router.navigate(['/products']);
+        }
       },
       error: () => {
         this.loading = false;

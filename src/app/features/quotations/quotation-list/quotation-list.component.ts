@@ -49,7 +49,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef> Quotation ID </th>
               <td mat-cell *matCellDef="let q">
-                <strong class="quotation-id">#QT-{{q.id}}</strong>
+                <a [routerLink]="['/quotations', q.id]" class="clickable-id">
+                  <strong class="quotation-id">#QT-{{q.id}}</strong>
+                </a>
               </td>
             </ng-container>
 
@@ -109,6 +111,8 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     .data-table { width: 100%; }
     
     .quotation-id { color: var(--accent-blue); }
+    .clickable-id { text-decoration: none; }
+    .clickable-id:hover .quotation-id { text-decoration: underline; opacity: 0.8; }
     .total-text { font-size: 15px; }
     
     .actions-header { text-align: right !important; }
