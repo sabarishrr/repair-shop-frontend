@@ -202,6 +202,20 @@ import { CustomerFormComponent } from '../../customers/customer-form/customer-fo
                 <textarea matInput formControlName="notes" rows="3" placeholder="Internal notes..."></textarea>
               </mat-form-field>
             </div>
+            
+            <div class="span-2">
+              <mat-form-field appearance="outline">
+                <mat-label>Material Used (Spares)</mat-label>
+                <textarea matInput formControlName="materialUsed" rows="2" placeholder="List of materials/spares used..."></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="span-2">
+              <mat-form-field appearance="outline">
+                <mat-label>Action Taken</mat-label>
+                <textarea matInput formControlName="actionTaken" rows="2" placeholder="Repair actions performed..."></textarea>
+              </mat-form-field>
+            </div>
           </div>
         </mat-card>
 
@@ -305,6 +319,8 @@ export class JobFormComponent implements OnInit {
     finalCost:          [null as number | null],
     status:             ['RECEIVED'],
     notes:              [''],
+    materialUsed:       [''],
+    actionTaken:        [''],
     receivedDate:       [this.today()],
     deliveryDate:       [''],
   });
@@ -399,8 +415,8 @@ export class JobFormComponent implements OnInit {
     const payload = {
       ...val,
       customerId:   +val.customerId,
-      receivedDate: val.receivedDate || null,
-      deliveryDate: val.deliveryDate || null,
+      receivedDate: val.receivedDate ? this.formatDate(val.receivedDate) : null,
+      deliveryDate: val.deliveryDate ? this.formatDate(val.deliveryDate) : null,
     };
     const req = this.isEdit
       ? this.svc.update(this.jobId!, payload)
@@ -418,6 +434,17 @@ export class JobFormComponent implements OnInit {
   }
 
   private today(): string {
-    return new Date().toISOString().slice(0, 10);
+    const d = new Date();
+    return this.formatDate(d);
+  }
+
+  private formatDate(d: any): string {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return String(d);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

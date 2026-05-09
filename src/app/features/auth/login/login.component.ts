@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
+import { CompanyDetailsService, CompanyDetails } from '../../../core/services/company-details.service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="logo-circle">
             <mat-icon>build</mat-icon>
           </div>
-          <h1>UPGRADE COMPUTERS</h1>
+          <h1>{{ company?.companyName || 'TECHFIX PRO' }}</h1>
           <p>Sign in to your account</p>
         </div>
 
@@ -149,7 +150,7 @@ import { AuthService } from '../../../core/services/auth.service';
     }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   form = this.fb.group({
     username: ['', Validators.required],
     password: ['', Validators.required]
@@ -157,8 +158,21 @@ export class LoginComponent {
   loading = false;
   error = '';
   hidePassword = true;
+  company?: CompanyDetails;
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) { }
+  constructor(
+    private fb: FormBuilder, 
+    private auth: AuthService, 
+    private companyService: CompanyDetailsService,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    this.companyService.get().subscribe({
+      next: c => this.company = c,
+      error: () => console.log('Could not load company details')
+    });
+  }
 
   login() {
     if (this.form.invalid) return;

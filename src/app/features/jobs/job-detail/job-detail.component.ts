@@ -24,7 +24,8 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
       <!-- Header -->
       <div class="page-header no-print">
         <div>
-          <h1 class="detail-title">Job Sheet #JOB-{{ job.id }}</h1>
+          <h1 class="detail-title" *ngIf="job.status !== 'DELIVERED'">Job Sheet #JOB-{{ job.id }}</h1>
+          <h1 class="detail-title" *ngIf="job.status === 'DELIVERED'">Cash Bill #JOB-{{ job.id }}</h1>
           <p>Created on {{ job.createdAt | date:'medium' }}</p>
         </div>
         <div class="header-actions">
@@ -54,8 +55,10 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
           
           <div class="doc-title">
             <img [src]="getQrCodeUrl(job)" alt="QR Code" class="job-qr" />
-            <h1>Job Sheet</h1>
-            <p class="doc-id">#JOB-{{ job.id }}</p>
+            <h1 *ngIf="job.status !== 'DELIVERED'">Job Sheet</h1>
+            <h1 *ngIf="job.status === 'DELIVERED'">CASH BILL</h1>
+            <p class="doc-id" *ngIf="job.status !== 'DELIVERED'">#JOB-{{ job.id }}</p>
+            <p class="doc-id" *ngIf="job.status === 'DELIVERED'">#JOB-{{ job.id }}</p>
             <p class="doc-date">Date: {{ job.createdAt | date:'mediumDate' }}</p>
           </div>
         </div>
@@ -94,6 +97,14 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
             <tr>
               <td><strong>Accessories Received</strong></td>
               <td>{{ job.accessories || '—' }}</td>
+            </tr>
+            <tr *ngIf="job.actionTaken">
+              <td><strong>Action Taken</strong></td>
+              <td class="pre-wrap">{{ job.actionTaken }}</td>
+            </tr>
+            <tr *ngIf="job.materialUsed">
+              <td><strong>Material Used</strong></td>
+              <td class="pre-wrap">{{ job.materialUsed }}</td>
             </tr>
           </tbody>
         </table>

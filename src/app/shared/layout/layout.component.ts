@@ -12,6 +12,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { CompanyDetailsService, CompanyDetails } from '../../core/services/company-details.service';
 import { DataManagementDialogComponent } from '../../features/settings/data-management-dialog.component';
 
 @Component({
@@ -39,7 +40,7 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
           <div class="brand-logo">
             <mat-icon>build</mat-icon>
           </div>
-          <span class="brand-name">UPGRADE COMPUTERS</span>
+          <span class="brand-name">{{ company?.companyName || 'TECHFIX PRO' }}</span>
         </div>
 
         <mat-divider></mat-divider>
@@ -105,7 +106,7 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
           <button mat-icon-button (click)="sidenav.toggle()">
             <mat-icon>menu</mat-icon>
           </button>
-          <span class="toolbar-brand">TechFix Pro</span>
+          <span class="toolbar-brand">{{ company?.companyName || 'TECHFIX PRO' }}</span>
         </mat-toolbar>
 
         <main>
@@ -278,11 +279,13 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
 export class LayoutComponent implements OnInit, OnDestroy {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   user: any;
+  company?: CompanyDetails;
   isMobile = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private auth: AuthService,
+    private companyService: CompanyDetailsService,
     private router: Router,
     private breakpointObserver: BreakpointObserver,
     private dialog: MatDialog
@@ -291,6 +294,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.companyService.get().subscribe(c => this.company = c);
     this.breakpointObserver
       .observe([Breakpoints.XSmall, Breakpoints.Small])
       .pipe(takeUntil(this.destroy$))

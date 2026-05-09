@@ -23,6 +23,8 @@ export interface JobSheet {
   finalCost?: number;
   status: JobStatus;
   notes?: string;
+  materialUsed?: string;
+  actionTaken?: string;
   receivedDate?: string;
   deliveryDate?: string;
   deliveredDate?: string;
