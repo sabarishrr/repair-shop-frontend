@@ -30,6 +30,9 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
           <a mat-raised-button color="primary" [routerLink]="['/quotations', quotation.id, 'edit']">
             <mat-icon>edit</mat-icon> Edit
           </a>
+          <a mat-raised-button color="accent" [routerLink]="['/invoices/new']" [queryParams]="{quotationId: quotation.id}">
+            <mat-icon>receipt</mat-icon> Convert to Invoice
+          </a>
         </div>
       </div>
 

@@ -34,71 +34,63 @@ import { User } from '../../../core/models/user.model';
         </a>
       </div>
 
-      <mat-card class="form-card">
-        <mat-card-content>
-          <form [formGroup]="form" (ngSubmit)="save()">
+      <mat-card class="form-card-page">
+        <form [formGroup]="form" (ngSubmit)="save()" id="userForm" class="form-grid">
 
-            <mat-form-field appearance="outline">
-              <mat-label>Full Name</mat-label>
-              <input matInput formControlName="fullName" autofocus>
-              <mat-icon matPrefix>badge</mat-icon>
-              <mat-error>Full name is required</mat-error>
-            </mat-form-field>
+          <div class="section-title">
+            <mat-icon>person</mat-icon>
+            User Details
+          </div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Username</mat-label>
-              <input matInput formControlName="username">
-              <mat-icon matPrefix>person</mat-icon>
-              <mat-error>Username is required</mat-error>
-            </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Full Name</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="fullName" autofocus>
+            <mat-error>Full name is required</mat-error>
+          </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Password {{ isEdit ? '(Leave blank to keep)' : '' }}</mat-label>
-              <input matInput type="password" formControlName="password">
-              <mat-icon matPrefix>lock</mat-icon>
-              <mat-error>Password is required</mat-error>
-            </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Username</mat-label>
+            <mat-icon matPrefix>alternate_email</mat-icon>
+            <input matInput formControlName="username">
+            <mat-error>Username is required</mat-error>
+          </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Role</mat-label>
-              <mat-select formControlName="role">
-                <mat-option value="ADMIN">Admin</mat-option>
-                <mat-option value="TECHNICIAN">Technician</mat-option>
-              </mat-select>
-              <mat-icon matPrefix>security</mat-icon>
-            </mat-form-field>
+          <div class="section-title">
+            <mat-icon>security</mat-icon>
+            Security & Access
+          </div>
 
-            <div class="form-actions">
-              <a mat-stroked-button routerLink="/users">Cancel</a>
-              <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-                <mat-icon>{{ isEdit ? 'save' : 'person_add' }}</mat-icon>
-                {{ loading ? 'Saving...' : (isEdit ? 'Update User' : 'Create User') }}
-              </button>
-            </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Password{{ isEdit ? ' (Leave blank to keep current)' : '' }}</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" formControlName="password">
+            <mat-error>Password is required</mat-error>
+          </mat-form-field>
 
-          </form>
-        </mat-card-content>
+          <mat-form-field appearance="outline">
+            <mat-label>Role</mat-label>
+            <mat-icon matPrefix>admin_panel_settings</mat-icon>
+            <mat-select formControlName="role">
+              <mat-option value="ADMIN">Admin — Full access</mat-option>
+              <mat-option value="TECHNICIAN">Technician — Limited access</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </form>
+
+        <div class="form-actions-bar">
+          <a mat-stroked-button routerLink="/users">Cancel</a>
+          <button mat-raised-button color="primary" type="submit" form="userForm" [disabled]="loading || form.invalid">
+            <mat-icon>{{ loading ? 'hourglass_empty' : (isEdit ? 'save' : 'person_add') }}</mat-icon>
+            {{ loading ? 'Saving...' : (isEdit ? 'Update User' : 'Create User') }}
+          </button>
+        </div>
       </mat-card>
     </div>
   `,
   styles: [`
-    .form-card {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 8px;
-    }
+    mat-form-field { width: 100%; }
   `]
 })
 export class UserFormComponent implements OnInit {

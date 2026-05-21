@@ -8,6 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CustomerService } from '../../../core/services/customer.service';
@@ -20,7 +22,8 @@ import { StateService, State } from '../../../core/services/state.service';
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
     MatCardModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatSnackBarModule, MatSelectModule, MatDialogModule
+    MatButtonModule, MatIconModule, MatSnackBarModule, MatSelectModule, MatDialogModule,
+    MatCheckboxModule, MatExpansionModule
   ],
   template: `
     <div [class.page-container]="!isDialog">
@@ -44,41 +47,100 @@ import { StateService, State } from '../../../core/services/state.service';
         <mat-dialog-content [class.mat-dialog-content]="isDialog">
           <form [formGroup]="form" (ngSubmit)="save()" id="customerForm">
 
-            <mat-form-field appearance="outline">
-              <mat-label>Full Name</mat-label>
-              <input matInput formControlName="name" autofocus>
-              <mat-icon matPrefix>person</mat-icon>
-              <mat-error>Name is required</mat-error>
+            <div class="section-title">Business Details</div>
+            
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Customer Type</mat-label>
+                <mat-select formControlName="customerType">
+                  <mat-option value="UNREGISTERED">Unregistered / Consumer</mat-option>
+                  <mat-option value="REGISTERED_REGULAR">Registered - Regular</mat-option>
+                  <mat-option value="REGISTERED_COMPOSITION">Registered - Composition</mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>GSTIN / UIN</mat-label>
+                <input matInput formControlName="gstin" placeholder="15-digit GSTIN">
+                <mat-icon matPrefix>verified</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Company / Business Name</mat-label>
+              <input matInput formControlName="companyName">
+              <mat-icon matPrefix>business</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Phone</mat-label>
-              <input matInput formControlName="phone">
-              <mat-icon matPrefix>phone</mat-icon>
-              <mat-error>Phone is required</mat-error>
-            </mat-form-field>
+            <div class="section-title">Contact Details</div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Email</mat-label>
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contact Person Name</mat-label>
+                <input matInput formControlName="name" autofocus required>
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-error>Name is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mobile / Phone</mat-label>
+                <input matInput formControlName="phone" required>
+                <mat-icon matPrefix>phone</mat-icon>
+                <mat-error>Phone is required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email Address</mat-label>
               <input matInput formControlName="email" type="email">
               <mat-icon matPrefix>email</mat-icon>
             </mat-form-field>
-            
-             <mat-form-field appearance="outline">
-               <mat-label>Address</mat-label>
-               <textarea matInput formControlName="address" rows="3"></textarea>
-               <mat-icon matPrefix>location_on</mat-icon>
-             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>State</mat-label>
-              <mat-select formControlName="state" [compareWith]="compareState">
-                <mat-option *ngFor="let s of states" [value]="s">
-                  {{ s.name }} ({{ s.gstCode }})
-                </mat-option>
-              </mat-select>
-              <mat-icon matPrefix>map</mat-icon>
+            <div class="section-title">Billing Address</div>
+
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>State (Place of Supply)</mat-label>
+                <mat-select formControlName="state" [compareWith]="compareState">
+                  <mat-option *ngFor="let s of states" [value]="s">
+                    {{ s.name }} ({{ s.gstCode }})
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>map</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>PIN Code</mat-label>
+                <input matInput formControlName="pinCode">
+                <mat-icon matPrefix>pin_drop</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Billing Address Line</mat-label>
+              <textarea matInput formControlName="address" rows="2"></textarea>
+              <mat-icon matPrefix>location_on</mat-icon>
             </mat-form-field>
+
+            <div class="section-title">Shipping Address</div>
+            
+            <mat-checkbox color="primary" [checked]="sameAsBilling" (change)="toggleShipping($event.checked)" class="same-billing-checkbox">
+              Shipping Address is same as Billing Address
+            </mat-checkbox>
+
+            <div *ngIf="!sameAsBilling" class="shipping-section">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Shipping Address Line</mat-label>
+                <textarea matInput formControlName="shippingAddress" rows="2"></textarea>
+                <mat-icon matPrefix>local_shipping</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Shipping PIN Code</mat-label>
+                <input matInput formControlName="shippingPinCode">
+                <mat-icon matPrefix>pin_drop</mat-icon>
+              </mat-form-field>
+            </div>
 
           </form>
         </mat-dialog-content>
@@ -103,7 +165,7 @@ import { StateService, State } from '../../../core/services/state.service';
   `,
   styles: [`
     .form-card {
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
     }
     
@@ -115,8 +177,23 @@ import { StateService, State } from '../../../core/services/state.service';
     form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       padding-top: 10px;
+    }
+    
+    .full-width { width: 100%; }
+    .row { display: flex; gap: 16px; }
+    .row mat-form-field { flex: 1; }
+
+    .section-title { font-weight: 600; font-size: 14px; color: var(--accent-blue); margin: 12px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    
+    .same-billing-checkbox { margin-bottom: 8px; }
+    
+    .shipping-section {
+      background: var(--bg-elevated);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
     }
 
     .form-actions {
@@ -144,13 +221,20 @@ export class CustomerFormComponent implements OnInit {
   loading = false;
   states: State[] = [];
   isDialog = false;
+  sameAsBilling = true;
 
   form = this.fb.group({
     name: ['', Validators.required],
     phone: ['', Validators.required],
     email: [''],
+    companyName: [''],
+    gstin: [''],
+    customerType: ['UNREGISTERED'],
     state: [null as State | null],
     address: [''],
+    pinCode: [''],
+    shippingAddress: [''],
+    shippingPinCode: ['']
   });
 
   constructor(
@@ -185,13 +269,25 @@ export class CustomerFormComponent implements OnInit {
 
   loadCustomer(): void {
     this.svc.getById(this.customerId!).subscribe({
-      next: (customer) => this.form.patchValue(customer),
+      next: (customer) => {
+        this.form.patchValue(customer);
+        if (customer.shippingAddress || customer.shippingPinCode) {
+          this.sameAsBilling = false;
+        }
+      },
       error: () => {
         this.snackBar.open('Customer not found', 'OK', { duration: 3000 });
         if (!this.isDialog) this.router.navigate(['/customers']);
         else this.dialogRef.close();
       }
     });
+  }
+
+  toggleShipping(checked: boolean) {
+    this.sameAsBilling = checked;
+    if (checked) {
+      this.form.patchValue({ shippingAddress: '', shippingPinCode: '' });
+    }
   }
 
   save(): void {
@@ -225,3 +321,4 @@ export class CustomerFormComponent implements OnInit {
     return s1 && s2 ? s1.id === s2.id : s1 === s2;
   }
 }
+

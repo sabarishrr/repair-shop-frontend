@@ -33,14 +33,19 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
         </a>
       </div>
 
-      <mat-card class="data-card">
+      <mat-card class="list-card">
         <div class="table-toolbar">
-          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-            <mat-icon matPrefix>search</mat-icon>
-            <mat-label>Search products</mat-label>
-            <input matInput (input)="onSearch($event)" placeholder="Search...">
-          </mat-form-field>
-          <span class="count-badge">{{ products.length }} products</span>
+          <div class="toolbar-left">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic" floatLabel="always">
+              <mat-icon matPrefix>search</mat-icon>
+              <mat-label>Search products</mat-label>
+              <input matInput (input)="onSearch($event)">
+            </mat-form-field>
+          </div>
+          <span class="count-badge">
+            <mat-icon style="font-size:14px;width:14px;height:14px;">inventory_2</mat-icon>
+            {{ products.length }} products
+          </span>
         </div>
 
         <div class="table-wrapper">
@@ -74,6 +79,15 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
               <td mat-cell *matCellDef="let p"> {{p.gstPercentage}}% </td>
             </ng-container>
 
+            <ng-container matColumnDef="stockQuantity">
+              <th mat-header-cell *matHeaderCellDef> Stock </th>
+              <td mat-cell *matCellDef="let p"> 
+                <span [class.low-stock]="p.stockQuantity !== undefined && p.stockQuantity <= (p.reorderLevel || 0)" [class.out-of-stock]="p.stockQuantity === 0">
+                  {{p.stockQuantity || 0}} <small>{{p.uom || 'NOS'}}</small>
+                </span> 
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-header"> Actions </th>
               <td mat-cell *matCellDef="let p" class="actions-cell">
@@ -92,8 +106,9 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
             <tr class="empty-row" *matNoDataRow>
               <td [attr.colspan]="displayedColumns.length">
                 <div class="empty-state">
-                  <mat-icon>inventory</mat-icon>
-                  <p>No products found.</p>
+                  <mat-icon class="empty-icon">inventory</mat-icon>
+                  <h3>No products found</h3>
+                  <p>Try adjusting your search or add a new product.</p>
                 </div>
               </td>
             </tr>
@@ -103,30 +118,18 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
     </div>
   `,
   styles: [`
-    .data-card { padding: 24px !important; }
-    .table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px; gap: 16px; flex-wrap: wrap; }
-    .search-field { width: 320px; max-width: 100%; }
-    .count-badge { font-size: 13px; color: var(--text-secondary); background: var(--bg-elevated); padding: 6px 14px; border-radius: 20px; font-weight: 500; }
-    .table-wrapper { overflow-x: auto; }
-    .data-table { width: 100%; }
-    
     .name-cell { display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #10b981, #3b82f6); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+    .avatar { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #10b981, #3b82f6); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
     .avatar mat-icon { font-size: 18px; width: 18px; height: 18px; }
     .name-text { display: flex; flex-direction: column; }
     .desc-text { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-    
-    .actions-header { text-align: right !important; }
-    .actions-cell { text-align: right; white-space: nowrap; }
-    
-    .empty-state { text-align: center; padding: 48px 0; }
-    .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px; }
-    .empty-state p { color: var(--text-secondary); font-size: 14px; }
+    .low-stock { color: #f59e0b; font-weight: 500; }
+    .out-of-stock { color: #ef4444; font-weight: 700; }
   `]
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
-  displayedColumns: string[] = ['name', 'hsn', 'rate', 'gstPercentage', 'actions'];
+  displayedColumns: string[] = ['name', 'hsn', 'rate', 'gstPercentage', 'stockQuantity', 'actions'];
 
   constructor(
     private svc: ProductService,

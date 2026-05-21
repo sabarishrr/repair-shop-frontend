@@ -6,6 +6,12 @@ export interface Customer {
   phone: string;
   email?: string;
   address?: string;
+  companyName?: string;
+  gstin?: string;
   state?: State;
+  customerType?: string;
+  pinCode?: string;
+  shippingAddress?: string;
+  shippingPinCode?: string;
   createdAt?: string;
 }

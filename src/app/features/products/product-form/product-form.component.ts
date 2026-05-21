@@ -54,24 +54,17 @@ import { ProductService, Product } from '../../../core/services/product.service'
               <mat-icon matPrefix>description</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Base Rate</mat-label>
-              <input matInput type="number" formControlName="rate" required>
-              <span matTextPrefix>Rs.&nbsp;</span>
-            </mat-form-field>
-
             <div class="row">
-              <mat-form-field appearance="outline">
-                <mat-label>HSN Code</mat-label>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>HSN / SAC Code</mat-label>
                 <input matInput formControlName="hsn">
                 <mat-icon matPrefix>tag</mat-icon>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gst-field">
+              
+              <mat-form-field appearance="outline" class="gst-field full-width">
                 <mat-label>GST Percentage (%)</mat-label>
                 <mat-select formControlName="gstPercentage" required>
-                  <mat-option *ngFor="let rate of gstRates" [value]="rate">
-                    {{ rate }}%
-                  </mat-option>
+                  <mat-option *ngFor="let rate of gstRates" [value]="rate">{{ rate }}%</mat-option>
                   <mat-divider></mat-divider>
                   <div class="add-gst-btn" (click)="addNewGst($event)">
                     <mat-icon>add</mat-icon> Add New GST %
@@ -80,6 +73,66 @@ import { ProductService, Product } from '../../../core/services/product.service'
                 <mat-icon matPrefix>percent</mat-icon>
               </mat-form-field>
             </div>
+
+            <div class="section-title">Pricing Details</div>
+            
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Purchase Price</mat-label>
+                <input matInput type="number" formControlName="purchasePrice">
+                <span matTextPrefix>₹&nbsp;</span>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>MRP</mat-label>
+                <input matInput type="number" formControlName="mrp">
+                <span matTextPrefix>₹&nbsp;</span>
+              </mat-form-field>
+            </div>
+
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Base Selling Rate (Default)</mat-label>
+                <input matInput type="number" formControlName="rate" required>
+                <span matTextPrefix>₹&nbsp;</span>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Wholesale Price</mat-label>
+                <input matInput type="number" formControlName="wholesalePrice">
+                <span matTextPrefix>₹&nbsp;</span>
+              </mat-form-field>
+            </div>
+
+            <div class="section-title">Inventory & Logistics</div>
+
+            <div class="row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Unit of Measurement (UOM)</mat-label>
+                <mat-select formControlName="uom">
+                  <mat-option value="NOS">Numbers (NOS)</mat-option>
+                  <mat-option value="KGS">Kilograms (KGS)</mat-option>
+                  <mat-option value="MTR">Meters (MTR)</mat-option>
+                  <mat-option value="PCS">Pieces (PCS)</mat-option>
+                  <mat-option value="BOX">Boxes (BOX)</mat-option>
+                  <mat-option value="SET">Sets (SET)</mat-option>
+                  <mat-option value="LTR">Liters (LTR)</mat-option>
+                </mat-select>
+                <mat-icon matPrefix>straighten</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Reorder Level (Low Stock Alert)</mat-label>
+                <input matInput type="number" formControlName="reorderLevel">
+                <mat-icon matPrefix>warning_amber</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" *ngIf="isEdit">
+              <mat-label>Current Stock</mat-label>
+              <input matInput type="number" [value]="form.get('stockQuantity')?.value || 0" readonly>
+              <mat-icon matPrefix>inventory</mat-icon>
+            </mat-form-field>
           </form>
         </mat-dialog-content>
 
@@ -113,6 +166,7 @@ import { ProductService, Product } from '../../../core/services/product.service'
     .full-width { width: 100%; }
     .row { display: flex; gap: 16px; }
     .row mat-form-field { flex: 1; }
+    .section-title { font-weight: 600; font-size: 14px; color: var(--accent-blue); margin: 8px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
     .add-gst-btn { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; color: var(--primary-color, #3f51b5); font-weight: 500; }
     .add-gst-btn:hover { background: rgba(0,0,0,0.04); }
     .add-gst-btn mat-icon { margin-right: 8px; font-size: 20px; width: 20px; height: 20px; }
@@ -153,7 +207,13 @@ export class ProductFormComponent implements OnInit {
       description: [''],
       rate: [0, [Validators.required, Validators.min(0)]],
       hsn: [''],
-      gstPercentage: [18, [Validators.required, Validators.min(0)]]
+      gstPercentage: [18, [Validators.required, Validators.min(0)]],
+      uom: ['NOS'],
+      purchasePrice: [0],
+      mrp: [0],
+      wholesalePrice: [0],
+      reorderLevel: [0],
+      stockQuantity: [{value: 0, disabled: true}]
     });
   }
 

@@ -37,22 +37,28 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
         </a>
       </div>
 
-      <mat-card class="job-card">
+      <mat-card class="list-card">
         <!-- Toolbar -->
         <div class="table-toolbar">
-          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-            <mat-icon matPrefix>search</mat-icon>
-            <mat-label>Search jobs, customers</mat-label>
-            <input matInput (input)="onSearch($event)">
-          </mat-form-field>
+          <div class="toolbar-left">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic" floatLabel="always">
+              <mat-icon matPrefix>search</mat-icon>
+              <mat-label>Search jobs, customers</mat-label>
+              <input matInput (input)="onSearch($event)">
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
-            <mat-label>Status</mat-label>
-            <mat-select (selectionChange)="onStatusFilter($event.value)">
-              <mat-option value="">All Statuses</mat-option>
-              <mat-option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic" floatLabel="always">
+              <mat-label>Status</mat-label>
+              <mat-select (selectionChange)="onStatusFilter($event.value)">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <span class="count-badge">
+            <mat-icon style="font-size:14px;width:14px;height:14px;">assignment</mat-icon>
+            {{ jobs.length }} jobs
+          </span>
         </div>
 
         <!-- Table -->
@@ -122,8 +128,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
             <tr class="empty-row" *matNoDataRow>
               <td [attr.colspan]="displayedColumns.length">
                 <div class="empty-state">
-                  <mat-icon>assignment</mat-icon>
-                  <p>No job sheets found.</p>
+                  <mat-icon class="empty-icon">assignment</mat-icon>
+                  <h3>No job sheets found</h3>
+                  <p>Try adjusting search or status filter, or create a new job.</p>
                 </div>
               </td>
             </tr>
@@ -133,51 +140,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     </div>
   `,
   styles: [`
-    .job-card {
-      padding: 24px !important;
-    }
-
-    .table-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 16px 0 8px;
-      flex-wrap: wrap;
-    }
-
-    .search-field { flex: 1; min-width: 200px; max-width: 320px; }
-    .filter-field { width: 180px; }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
     .job-table { width: 100%; }
-
-    .job-id { color: var(--accent-blue); }
-    .quotation-id { color: var(--accent-blue); }
-    .clickable-id { text-decoration: none; }
-    .clickable-id:hover .job-id,
-    .clickable-id:hover .quotation-id { text-decoration: underline; opacity: 0.8; }
-
-    .brand-tag {
-      color: var(--text-secondary);
-      font-size: 12px;
-    }
-
-    .text-muted {
-      color: var(--text-muted);
-    }
-
-    .actions-header { text-align: right !important; }
-    .actions-cell { text-align: right; white-space: nowrap; }
-
-    .empty-state {
-      text-align: center;
-      padding: 48px 0;
-      mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px; }
-      p { color: var(--text-secondary); font-size: 14px; }
-    }
+    .brand-tag { color: var(--text-secondary); font-size: 12px; }
+    .text-muted { color: var(--text-muted); }
   `]
 })
 export class JobListComponent implements OnInit {

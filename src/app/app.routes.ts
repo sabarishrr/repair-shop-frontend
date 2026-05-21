@@ -80,6 +80,52 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'suppliers',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/suppliers/supplier-list/supplier-list.component').then(m => m.SupplierListComponent) },
+          { path: 'new', loadComponent: () => import('./features/suppliers/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent) },
+          { path: ':id/edit', loadComponent: () => import('./features/suppliers/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent) }
+        ]
+      },
+      {
+        path: 'purchases',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/purchases/purchase-list/purchase-list.component').then(m => m.PurchaseListComponent) },
+          { path: 'new', loadComponent: () => import('./features/purchases/purchase-form/purchase-form.component').then(m => m.PurchaseFormComponent) },
+          { path: ':id/edit', loadComponent: () => import('./features/purchases/purchase-form/purchase-form.component').then(m => m.PurchaseFormComponent) }
+        ]
+      },
+      {
+        path: 'invoices',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/invoices/invoice-list/invoice-list.component').then(m => m.InvoiceListComponent) },
+          { path: 'new', loadComponent: () => import('./features/invoices/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent) },
+          { path: ':id/edit', loadComponent: () => import('./features/invoices/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/invoices/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent) }
+        ]
+      },
+      {
+        path: 'receipts',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/receipts/receipt-list/receipt-list.component').then(m => m.ReceiptListComponent) },
+          { path: 'new', loadComponent: () => import('./features/receipts/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent) },
+          { path: 'edit/:id', loadComponent: () => import('./features/receipts/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent) }
+        ]
+      },
+      {
+        path: 'payments',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/payments/payment-list/payment-list.component').then(m => m.PaymentListComponent) },
+          { path: 'new', loadComponent: () => import('./features/payments/payment-form/payment-form.component').then(m => m.PaymentFormComponent) },
+          { path: 'edit/:id', loadComponent: () => import('./features/payments/payment-form/payment-form.component').then(m => m.PaymentFormComponent) }
+        ]
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/company-settings/company-settings.component').then(m => m.CompanySettingsComponent),
         canActivate: [roleGuard],

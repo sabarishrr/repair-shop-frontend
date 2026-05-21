@@ -117,6 +117,80 @@ import { StateService, State } from '../../../core/services/state.service';
           </div>
         </mat-card>
 
+        <!-- Serial Numbers Configuration Section -->
+        <mat-card class="form-section">
+          <div class="section-header">
+            <mat-icon class="section-icon">format_list_numbered</mat-icon>
+            <h3>Serialized Document Numbering</h3>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Invoice Number Prefix</mat-label>
+              <input matInput formControlName="invoicePrefix" placeholder="e.g. INV-">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Next Invoice Number (Starting No)</mat-label>
+              <input matInput type="number" formControlName="nextInvoiceNo" min="1">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Receipt Number Prefix</mat-label>
+              <input matInput formControlName="receiptPrefix" placeholder="e.g. RCP-">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Next Receipt Number (Starting No)</mat-label>
+              <input matInput type="number" formControlName="nextReceiptNo" min="1">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Payment Number Prefix</mat-label>
+              <input matInput formControlName="paymentPrefix" placeholder="e.g. PMT-">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Next Payment Number (Starting No)</mat-label>
+              <input matInput type="number" formControlName="nextPaymentNo" min="1">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
+          </div>
+        </mat-card>
+
+        <!-- Bank Details Section -->
+        <mat-card class="form-section">
+          <div class="section-header">
+            <mat-icon class="section-icon">account_balance</mat-icon>
+            <h3>Bank Details (For Invoices)</h3>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Bank Name</mat-label>
+              <input matInput formControlName="bankName" placeholder="e.g. HDFC Bank">
+              <mat-icon matPrefix>account_balance</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Account Number</mat-label>
+              <input matInput formControlName="accountNumber" placeholder="e.g. 50100234567890">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Branch & IFS Code</mat-label>
+              <input matInput formControlName="branchIfsCode" placeholder="e.g. MG Road, HDFC0001234">
+              <mat-icon matPrefix>account_tree</mat-icon>
+            </mat-form-field>
+          </div>
+        </mat-card>
+
         <!-- Actions -->
         <div class="form-actions">
           <button mat-stroked-button type="button" (click)="reset()">
@@ -245,6 +319,15 @@ export class CompanySettingsComponent implements OnInit {
     logoUrl:     [''],
     gstNumber:   [''],
     state:       [null as State | null],
+    bankName:      [''],
+    accountNumber: [''],
+    branchIfsCode: [''],
+    nextInvoiceNo: [1, [Validators.required, Validators.min(1)]],
+    nextReceiptNo: [1, [Validators.required, Validators.min(1)]],
+    nextPaymentNo: [1, [Validators.required, Validators.min(1)]],
+    invoicePrefix: ['INV-', Validators.required],
+    receiptPrefix: ['REC-', Validators.required],
+    paymentPrefix: ['PAY-', Validators.required]
   });
 
   constructor(
@@ -269,6 +352,15 @@ export class CompanySettingsComponent implements OnInit {
         logoUrl:     details.logoUrl || '',
         gstNumber:   details.gstNumber || '',
         state:       details.state || null,
+        bankName:      details.bankName || '',
+        accountNumber: details.accountNumber || '',
+        branchIfsCode: details.branchIfsCode || '',
+        nextInvoiceNo: details.nextInvoiceNo || 1,
+        nextReceiptNo: details.nextReceiptNo || 1,
+        nextPaymentNo: details.nextPaymentNo || 1,
+        invoicePrefix: details.invoicePrefix || 'INV-',
+        receiptPrefix: details.receiptPrefix || 'REC-',
+        paymentPrefix: details.paymentPrefix || 'PAY-'
       });
       this.lastUpdated = details.updatedAt;
       this.originalValues = this.form.value;

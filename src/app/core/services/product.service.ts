@@ -9,6 +9,12 @@ export interface Product {
   rate: number;
   hsn?: string;
   gstPercentage: number;
+  stockQuantity?: number;
+  uom?: string;
+  purchasePrice?: number;
+  mrp?: number;
+  wholesalePrice?: number;
+  reorderLevel?: number;
 }
 
 @Injectable({ providedIn: 'root' })

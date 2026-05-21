@@ -12,6 +12,15 @@ export interface CompanyDetails {
   logoUrl?: string;
   gstNumber?: string;
   state?: State;
+  bankName?: string;
+  accountNumber?: string;
+  branchIfsCode?: string;
+  nextInvoiceNo?: number;
+  nextReceiptNo?: number;
+  nextPaymentNo?: number;
+  invoicePrefix?: string;
+  receiptPrefix?: string;
+  paymentPrefix?: string;
   updatedAt?: string;
 }
 

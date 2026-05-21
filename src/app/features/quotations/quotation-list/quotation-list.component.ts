@@ -34,13 +34,19 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
         </a>
       </div>
 
-      <mat-card class="data-card">
+      <mat-card class="list-card">
         <div class="table-toolbar">
-          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-            <mat-icon matPrefix>search</mat-icon>
-            <mat-label>Search quotations</mat-label>
-            <input matInput (input)="onSearch($event)">
-          </mat-form-field>
+          <div class="toolbar-left">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic" floatLabel="always">
+              <mat-icon matPrefix>search</mat-icon>
+              <mat-label>Search quotations</mat-label>
+              <input matInput (input)="onSearch($event)">
+            </mat-form-field>
+          </div>
+          <span class="count-badge">
+            <mat-icon style="font-size:14px;width:14px;height:14px;">request_quote</mat-icon>
+            {{ filteredQuotations.length }} quotations
+          </span>
         </div>
 
         <div class="table-wrapper">
@@ -93,8 +99,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
             <tr class="empty-row" *matNoDataRow>
               <td [attr.colspan]="displayedColumns.length">
                 <div class="empty-state">
-                  <mat-icon>request_quote</mat-icon>
-                  <p>No quotations found.</p>
+                  <mat-icon class="empty-icon">request_quote</mat-icon>
+                  <h3>No quotations found</h3>
+                  <p>Try adjusting your search or create a new quotation.</p>
                 </div>
               </td>
             </tr>
@@ -104,23 +111,10 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     </div>
   `,
   styles: [`
-    .data-card { padding: 24px !important; }
-    .table-toolbar { display: flex; align-items: center; gap: 16px; padding: 16px 0 8px; flex-wrap: wrap; }
-    .search-field { flex: 1; min-width: 200px; max-width: 320px; }
-    .table-wrapper { overflow-x: auto; }
-    .data-table { width: 100%; }
-    
     .quotation-id { color: var(--accent-blue); }
     .clickable-id { text-decoration: none; }
     .clickable-id:hover .quotation-id { text-decoration: underline; opacity: 0.8; }
-    .total-text { font-size: 15px; }
-    
-    .actions-header { text-align: right !important; }
-    .actions-cell { text-align: right; white-space: nowrap; }
-    
-    .empty-state { text-align: center; padding: 48px 0; }
-    .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px; }
-    .empty-state p { color: var(--text-secondary); font-size: 14px; }
+    .total-text { font-size: 15px; font-weight: 600; }
   `]
 })
 export class QuotationListComponent implements OnInit {

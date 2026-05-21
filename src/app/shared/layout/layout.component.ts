@@ -59,6 +59,10 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
             <mat-icon matListItemIcon>people</mat-icon>
             <span matListItemTitle>Customers</span>
           </a>
+          <a mat-list-item routerLink="/suppliers" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>store</mat-icon>
+            <span matListItemTitle>Vendors</span>
+          </a>
           <a mat-list-item routerLink="/products" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>inventory_2</mat-icon>
             <span matListItemTitle>Products</span>
@@ -66,6 +70,22 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
           <a mat-list-item routerLink="/quotations" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>request_quote</mat-icon>
             <span matListItemTitle>Quotations</span>
+          </a>
+          <a mat-list-item routerLink="/invoices" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>receipt_long</mat-icon>
+            <span matListItemTitle>Sales Invoices</span>
+          </a>
+          <a mat-list-item routerLink="/receipts" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>receipt</mat-icon>
+            <span matListItemTitle>Customer Receipts</span>
+          </a>
+          <a mat-list-item routerLink="/purchases" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>shopping_cart</mat-icon>
+            <span matListItemTitle>Purchases</span>
+          </a>
+          <a mat-list-item routerLink="/payments" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>payments</mat-icon>
+            <span matListItemTitle>Supplier Payments</span>
           </a>
           <a mat-list-item *ngIf="user?.role === 'ADMIN'" routerLink="/users" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>manage_accounts</mat-icon>
