@@ -103,10 +103,15 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
             <mat-icon matListItemIcon>manage_accounts</mat-icon>
             <span matListItemTitle>User Management</span>
           </a>
+          <a mat-list-item *ngIf="user?.role === 'ADMIN'" routerLink="/reports" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>trending_up</mat-icon>
+            <span matListItemTitle>Business Reports</span>
+          </a>
           <a mat-list-item *ngIf="user?.role === 'ADMIN'" routerLink="/settings" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>settings</mat-icon>
             <span matListItemTitle>Company Settings</span>
           </a>
+
           
           <a mat-list-item *ngIf="user?.role === 'ADMIN'" (click)="openDataManagement(); closeMobile()" style="cursor: pointer;">
             <mat-icon matListItemIcon>storage</mat-icon>

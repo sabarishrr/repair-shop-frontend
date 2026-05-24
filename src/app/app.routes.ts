@@ -149,7 +149,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/settings/company-settings/company-settings.component').then(m => m.CompanySettingsComponent),
         canActivate: [roleGuard],
       },
+      {
+        path: 'reports',
+        loadComponent: () => import('./features/reports/reports-dashboard/reports-dashboard.component').then(m => m.ReportsDashboardComponent),
+        canActivate: [roleGuard],
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },
 ];
+
