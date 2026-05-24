@@ -6,10 +6,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { JobSheetService } from '../../../core/services/job-sheet.service';
 import { JobSheet } from '../../../core/models/job-sheet.model';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CompanyDetailsService, CompanyDetails } from '../../../core/services/company-details.service';
+import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
+import { WhatsAppService } from '../../../core/services/whatsapp.service';
 
 @Component({
   selector: 'app-job-detail',
@@ -17,7 +20,7 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
   imports: [
     CommonModule, RouterModule,
     MatCardModule, MatButtonModule, MatIconModule,
-    MatDividerModule, MatChipsModule, MatSnackBarModule,
+    MatDividerModule, MatChipsModule, MatSnackBarModule, MatDialogModule,
   ],
   template: `
     <div class="page-container" *ngIf="job">
@@ -32,6 +35,13 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
           <a mat-stroked-button routerLink="/jobs">
             <mat-icon>arrow_back</mat-icon> Back
           </a>
+          <button mat-stroked-button (click)="sendEmail()" [disabled]="!job.customer.email">
+            <mat-icon>email</mat-icon> Send Email
+          </button>
+          <button mat-flat-button class="wa-btn" (click)="sendWhatsApp()" [disabled]="!job.customer.phone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="16" height="16" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.102 1.518 5.826L0 24l6.336-1.491A11.933 11.933 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.385 14.518c-.295-.147-1.745-.86-2.016-.957-.27-.098-.467-.147-.663.147-.196.295-.76.957-.932 1.154-.172.196-.344.22-.638.074-.295-.147-1.244-.459-2.368-1.462-.875-.78-1.466-1.744-1.637-2.039-.172-.295-.018-.454.129-.6.132-.132.295-.344.442-.517.147-.172.196-.295.295-.491.098-.196.049-.368-.025-.515-.074-.147-.663-1.598-.908-2.187-.239-.574-.483-.496-.663-.505l-.565-.01c-.196 0-.516.074-.786.368-.27.295-1.032 1.008-1.032 2.459s1.057 2.852 1.204 3.048c.147.196 2.08 3.177 5.042 4.457.705.305 1.255.486 1.684.623.708.225 1.352.193 1.861.117.568-.085 1.745-.713 1.991-1.402.245-.688.245-1.277.172-1.402-.074-.123-.27-.196-.565-.344z"/></svg>
+            WhatsApp
+          </button>
           <button mat-stroked-button (click)="print()">
             <mat-icon>print</mat-icon> Print
           </button>
@@ -54,7 +64,7 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
           </div>
           
           <div class="doc-title">
-            <img [src]="getQrCodeUrl(job)" alt="QR Code" class="job-qr" />
+            <img [src]="getQrCodeUrl(job, company)" alt="QR Code" class="job-qr" />
             <h1 *ngIf="job.status !== 'DELIVERED'">Job Sheet</h1>
             <h1 *ngIf="job.status === 'DELIVERED'">CASH BILL</h1>
             <p class="doc-id" *ngIf="job.status !== 'DELIVERED'">#JOB-{{ job.id }}</p>
@@ -212,7 +222,9 @@ export class JobDetailComponent implements OnInit {
     private svc: JobSheetService,
     private companySvc: CompanyDetailsService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+    private whatsapp: WhatsAppService
   ) { }
 
   ngOnInit(): void {
@@ -229,12 +241,46 @@ export class JobDetailComponent implements OnInit {
     }
   }
 
+  sendEmail(): void {
+    if (!this.job) return;
+    this.dialog.open(EmailDialogComponent, {
+      data: {
+        toEmail: this.job.customer?.email || '',
+        subject: `Job Sheet JOB-${this.job.id} — ${this.job.status} | ${this.company?.companyName || 'Us'}`,
+        message: `Dear ${this.job.customer?.name || 'Customer'},\n\nPlease find attached your job sheet JOB-${this.job.id} for ${this.job.deviceType || 'your device'}.\n\nCurrent Status: ${this.job.status}\n\nThank you for choosing us!`,
+        documentType: 'JOBSHEET',
+        documentId: this.job.id!,
+        documentLabel: `Job Sheet JOB-${this.job.id}`
+      },
+      width: '620px'
+    });
+  }
+
+  sendWhatsApp(): void {
+    if (!this.job || !this.job.customer?.phone) return;
+    const name = this.job.customer.name || 'Customer';
+    const device = `${this.job.deviceType || ''} ${this.job.brand || ''}`.trim() || 'your device';
+    const company = this.company?.companyName || 'Us';
+    if (this.job.status === 'DELIVERED') {
+      this.whatsapp.sendCollectionReady(this.job.customer.phone, name, this.job.id!, device, this.job.finalCost ?? 'TBD', company);
+    } else {
+      this.whatsapp.sendJobStatus(this.job.customer.phone, name, this.job.id!, device, this.job.status, company);
+    }
+  }
+
   print(): void {
     window.print();
   }
 
-  getQrCodeUrl(job: JobSheet): string {
+  getQrCodeUrl(job: JobSheet, company?: CompanyDetails): string {
     if (!job) return '';
+    if (company?.upiId) {
+      // UPI QR — include amount if available
+      const amount = job.finalCost ? `&am=${job.finalCost}` : '';
+      const upiUrl = `upi://pay?pa=${encodeURIComponent(company.upiId)}&pn=${encodeURIComponent(company.companyName || 'Shop')}${amount}&cu=INR&tn=${encodeURIComponent('JOB-' + job.id)}`;
+      return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}&bgcolor=ffffff&color=000000`;
+    }
+    // Fallback: job info QR
     const data = `Job: JOB-${job.id}\nStatus: ${job.status}\nCustomer: ${job.customer?.name}\nPhone: ${job.customer?.phone}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data)}&bgcolor=ffffff`;
   }

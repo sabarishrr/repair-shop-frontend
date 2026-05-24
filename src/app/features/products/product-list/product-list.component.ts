@@ -12,6 +12,7 @@ import { RouterModule } from '@angular/router';
 import { ProductService, Product } from '../../../core/services/product.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { StockAdjustmentDialogComponent } from '../stock-adjustment-dialog/stock-adjustment-dialog.component';
 
 @Component({
   selector: 'app-product-list',
@@ -28,9 +29,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
           <h1>Products</h1>
           <p>Manage your product catalog and services</p>
         </div>
-        <a mat-raised-button color="primary" routerLink="/products/new">
-          <mat-icon>add</mat-icon> Add Product
-        </a>
+        <div class="header-actions" style="display:flex;gap:12px;">
+          <a mat-stroked-button routerLink="/products/adjustments">
+            <mat-icon>history</mat-icon> Adjustments Log
+          </a>
+          <a mat-raised-button color="primary" routerLink="/products/new">
+            <mat-icon>add</mat-icon> Add Product
+          </a>
+        </div>
       </div>
 
       <mat-card class="list-card">
@@ -91,6 +97,9 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-header"> Actions </th>
               <td mat-cell *matCellDef="let p" class="actions-cell">
+                <button mat-icon-button color="accent" (click)="adjustStock(p)" matTooltip="Adjust Stock">
+                  <mat-icon>published_with_changes</mat-icon>
+                </button>
                 <a mat-icon-button color="primary" [routerLink]="['/products', p.id, 'edit']" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
@@ -161,6 +170,19 @@ export class ProductListComponent implements OnInit {
           this.snackBar.open('Product deleted', 'OK', { duration: 3000 });
           this.loadProducts();
         });
+      }
+    });
+  }
+
+  adjustStock(product: Product) {
+    const dialogRef = this.dialog.open(StockAdjustmentDialogComponent, {
+      width: '560px',
+      data: { product }
+    });
+
+    dialogRef.afterClosed().subscribe(success => {
+      if (success) {
+        this.loadProducts();
       }
     });
   }

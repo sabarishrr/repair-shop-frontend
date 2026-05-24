@@ -15,12 +15,17 @@ export interface CompanyDetails {
   bankName?: string;
   accountNumber?: string;
   branchIfsCode?: string;
+  upiId?: string;
   nextInvoiceNo?: number;
   nextReceiptNo?: number;
   nextPaymentNo?: number;
+  nextCreditNoteNo?: number;
+  nextDebitNoteNo?: number;
   invoicePrefix?: string;
   receiptPrefix?: string;
   paymentPrefix?: string;
+  creditNotePrefix?: string;
+  debitNotePrefix?: string;
   updatedAt?: string;
 }
 

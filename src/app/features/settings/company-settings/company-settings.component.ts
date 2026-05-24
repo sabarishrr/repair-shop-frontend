@@ -160,6 +160,30 @@ import { StateService, State } from '../../../core/services/state.service';
               <input matInput type="number" formControlName="nextPaymentNo" min="1">
               <mat-icon matPrefix>pin</mat-icon>
             </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Credit Note Prefix</mat-label>
+              <input matInput formControlName="creditNotePrefix" placeholder="e.g. CN-">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Next Credit Note Number</mat-label>
+              <input matInput type="number" formControlName="nextCreditNoteNo" min="1">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Debit Note Prefix</mat-label>
+              <input matInput formControlName="debitNotePrefix" placeholder="e.g. DN-">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Next Debit Note Number</mat-label>
+              <input matInput type="number" formControlName="nextDebitNoteNo" min="1">
+              <mat-icon matPrefix>pin</mat-icon>
+            </mat-form-field>
           </div>
         </mat-card>
 
@@ -188,6 +212,19 @@ import { StateService, State } from '../../../core/services/state.service';
               <input matInput formControlName="branchIfsCode" placeholder="e.g. MG Road, HDFC0001234">
               <mat-icon matPrefix>account_tree</mat-icon>
             </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>UPI ID</mat-label>
+              <input matInput formControlName="upiId" placeholder="e.g. shopname@upi">
+              <mat-icon matPrefix>qr_code_2</mat-icon>
+              <mat-hint>Used to generate a payment QR on invoices & job sheets</mat-hint>
+            </mat-form-field>
+
+            <div class="span-2 upi-preview" *ngIf="form.get('upiId')?.value">
+              <label class="preview-label">UPI QR Preview (generic — amount filled at print time)</label>
+              <img [src]="getUpiQrPreview()" alt="UPI QR" style="width:120px;height:120px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:4px;">
+              <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">{{ form.get('upiId')?.value }}</p>
+            </div>
           </div>
         </mat-card>
 
@@ -322,12 +359,17 @@ export class CompanySettingsComponent implements OnInit {
     bankName:      [''],
     accountNumber: [''],
     branchIfsCode: [''],
+    upiId:         [''],
     nextInvoiceNo: [1, [Validators.required, Validators.min(1)]],
     nextReceiptNo: [1, [Validators.required, Validators.min(1)]],
     nextPaymentNo: [1, [Validators.required, Validators.min(1)]],
+    nextCreditNoteNo: [1, [Validators.required, Validators.min(1)]],
+    nextDebitNoteNo: [1, [Validators.required, Validators.min(1)]],
     invoicePrefix: ['INV-', Validators.required],
     receiptPrefix: ['REC-', Validators.required],
-    paymentPrefix: ['PAY-', Validators.required]
+    paymentPrefix: ['PAY-', Validators.required],
+    creditNotePrefix: ['CN-', Validators.required],
+    debitNotePrefix: ['DN-', Validators.required]
   });
 
   constructor(
@@ -355,12 +397,17 @@ export class CompanySettingsComponent implements OnInit {
         bankName:      details.bankName || '',
         accountNumber: details.accountNumber || '',
         branchIfsCode: details.branchIfsCode || '',
+        upiId:         details.upiId || '',
         nextInvoiceNo: details.nextInvoiceNo || 1,
         nextReceiptNo: details.nextReceiptNo || 1,
         nextPaymentNo: details.nextPaymentNo || 1,
+        nextCreditNoteNo: details.nextCreditNoteNo || 1,
+        nextDebitNoteNo: details.nextDebitNoteNo || 1,
         invoicePrefix: details.invoicePrefix || 'INV-',
         receiptPrefix: details.receiptPrefix || 'REC-',
-        paymentPrefix: details.paymentPrefix || 'PAY-'
+        paymentPrefix: details.paymentPrefix || 'PAY-',
+        creditNotePrefix: details.creditNotePrefix || 'CN-',
+        debitNotePrefix: details.debitNotePrefix || 'DN-'
       });
       this.lastUpdated = details.updatedAt;
       this.originalValues = this.form.value;
@@ -399,6 +446,13 @@ export class CompanySettingsComponent implements OnInit {
 
   onLogoError(event: Event): void {
     (event.target as HTMLImageElement).style.display = 'none';
+  }
+
+  getUpiQrPreview(): string {
+    const upiId = this.form.get('upiId')?.value || '';
+    const name = encodeURIComponent(this.form.get('companyName')?.value || 'Shop');
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${name}&cu=INR`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(upiUrl)}&bgcolor=ffffff&color=000000`;
   }
 
   compareState(s1: State, s2: State): boolean {

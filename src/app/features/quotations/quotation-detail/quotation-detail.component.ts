@@ -5,13 +5,16 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { QuotationService, Quotation } from '../../../core/services/quotation.service';
 import { CompanyDetailsService, CompanyDetails } from '../../../core/services/company-details.service';
+import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
+import { WhatsAppService } from '../../../core/services/whatsapp.service';
 
 @Component({
   selector: 'app-quotation-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatIconModule, MatDividerModule],
+  imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatIconModule, MatDividerModule, MatDialogModule],
   template: `
     <div class="page-container" *ngIf="quotation">
       <!-- Header -->
@@ -24,6 +27,13 @@ import { CompanyDetailsService, CompanyDetails } from '../../../core/services/co
           <a mat-stroked-button routerLink="/quotations">
             <mat-icon>arrow_back</mat-icon> Back
           </a>
+          <button mat-stroked-button (click)="sendEmail()" [disabled]="!quotation.customer.email">
+            <mat-icon>email</mat-icon> Send Email
+          </button>
+          <button mat-flat-button class="wa-btn" (click)="sendWhatsApp()" [disabled]="!quotation.customer.phone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="16" height="16" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.102 1.518 5.826L0 24l6.336-1.491A11.933 11.933 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.385 14.518c-.295-.147-1.745-.86-2.016-.957-.27-.098-.467-.147-.663.147-.196.295-.76.957-.932 1.154-.172.196-.344.22-.638.074-.295-.147-1.244-.459-2.368-1.462-.875-.78-1.466-1.744-1.637-2.039-.172-.295-.018-.454.129-.6.132-.132.295-.344.442-.517.147-.172.196-.295.295-.491.098-.196.049-.368-.025-.515-.074-.147-.663-1.598-.908-2.187-.239-.574-.483-.496-.663-.505l-.565-.01c-.196 0-.516.074-.786.368-.27.295-1.032 1.008-1.032 2.459s1.057 2.852 1.204 3.048c.147.196 2.08 3.177 5.042 4.457.705.305 1.255.486 1.684.623.708.225 1.352.193 1.861.117.568-.085 1.745-.713 1.991-1.402.245-.688.245-1.277.172-1.402-.074-.123-.27-.196-.565-.344z"/></svg>
+            WhatsApp
+          </button>
           <button mat-stroked-button (click)="print()">
             <mat-icon>print</mat-icon> Print
           </button>
@@ -200,7 +210,9 @@ export class QuotationDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private svc: QuotationService,
-    private companySvc: CompanyDetailsService
+    private companySvc: CompanyDetailsService,
+    private dialog: MatDialog,
+    private whatsapp: WhatsAppService
   ) {}
 
   ngOnInit() {
@@ -212,6 +224,32 @@ export class QuotationDetailComponent implements OnInit {
         error: () => this.router.navigate(['/quotations'])
       });
     }
+  }
+
+  sendEmail(): void {
+    if (!this.quotation) return;
+    this.dialog.open(EmailDialogComponent, {
+      data: {
+        toEmail: this.quotation.customer?.email || '',
+        subject: `Quotation QT-${this.quotation.id} from ${this.company?.companyName || 'Us'}`,
+        message: `Dear ${this.quotation.customer?.name || 'Customer'},\n\nPlease find attached your quotation QT-${this.quotation.id}.\n\nFeel free to contact us for any queries.`,
+        documentType: 'QUOTATION',
+        documentId: this.quotation.id!,
+        documentLabel: `Quotation QT-${this.quotation.id}`
+      },
+      width: '620px'
+    });
+  }
+
+  sendWhatsApp(): void {
+    if (!this.quotation || !this.quotation.customer?.phone) return;
+    this.whatsapp.sendQuotation(
+      this.quotation.customer.phone,
+      this.quotation.customer.name || 'Customer',
+      this.quotation.id!,
+      this.quotation.grandTotal ?? 0,
+      this.company?.companyName || 'Us'
+    );
   }
 
   print() {

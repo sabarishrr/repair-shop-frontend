@@ -416,3 +416,40 @@ html, body {
   letter-spacing: 0.03em;
 }
 
+// ── WhatsApp Button Styles ────────────────────────────────────
+.wa-btn {
+  background-color: #25D366 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease, transform 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #1ebe5c !important;
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed;
+  }
+}
+
+.wa-icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  img { display: block; }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.2);
+  }
+  &:disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed;
+  }
+}

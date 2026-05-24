@@ -67,6 +67,10 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
             <mat-icon matListItemIcon>inventory_2</mat-icon>
             <span matListItemTitle>Products</span>
           </a>
+          <a mat-list-item routerLink="/products/adjustments" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>published_with_changes</mat-icon>
+            <span matListItemTitle>Stock Adjustments</span>
+          </a>
           <a mat-list-item routerLink="/quotations" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>request_quote</mat-icon>
             <span matListItemTitle>Quotations</span>
@@ -79,6 +83,10 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
             <mat-icon matListItemIcon>receipt</mat-icon>
             <span matListItemTitle>Customer Receipts</span>
           </a>
+          <a mat-list-item routerLink="/credit-notes" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>assignment_return</mat-icon>
+            <span matListItemTitle>Credit Notes</span>
+          </a>
           <a mat-list-item routerLink="/purchases" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>shopping_cart</mat-icon>
             <span matListItemTitle>Purchases</span>
@@ -86,6 +94,10 @@ import { DataManagementDialogComponent } from '../../features/settings/data-mana
           <a mat-list-item routerLink="/payments" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>payments</mat-icon>
             <span matListItemTitle>Supplier Payments</span>
+          </a>
+          <a mat-list-item routerLink="/debit-notes" routerLinkActive="active-link" (click)="closeMobile()">
+            <mat-icon matListItemIcon>assignment_returned</mat-icon>
+            <span matListItemTitle>Debit Notes</span>
           </a>
           <a mat-list-item *ngIf="user?.role === 'ADMIN'" routerLink="/users" routerLinkActive="active-link" (click)="closeMobile()">
             <mat-icon matListItemIcon>manage_accounts</mat-icon>

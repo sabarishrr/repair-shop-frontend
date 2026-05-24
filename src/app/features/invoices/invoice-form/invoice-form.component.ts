@@ -143,9 +143,19 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
             </div>
 
             <div formArrayName="items" class="items-list">
-              <div *ngFor="let item of items.controls; let i=index" [formGroupName]="i" class="item-row" style="align-items: center;">
-                <div class="product-select-container">
-                  <mat-form-field appearance="outline" class="product-select" style="flex: 1;">
+              <div class="items-header-row">
+                <span class="col-product">Product/Spare</span>
+                <span class="col-desc">Description</span>
+                <span class="col-serial">Serial No.</span>
+                <span class="col-warranty">Warranty</span>
+                <span class="col-qty">Qty</span>
+                <span class="col-price">Unit Price</span>
+                <span class="col-gst">GST %</span>
+                <span class="col-action"></span>
+              </div>
+              <div *ngFor="let item of items.controls; let i=index" [formGroupName]="i" class="item-row">
+                <div class="col-product product-select-container">
+                  <mat-form-field appearance="outline" style="flex:1;">
                     <mat-label>Product/Spare</mat-label>
                     <mat-select formControlName="productId" (selectionChange)="onProductSelect(i, $event.value)">
                       <mat-option [value]="null">-- Custom Service --</mat-option>
@@ -157,22 +167,33 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
                   </button>
                 </div>
 
-                <mat-form-field appearance="outline" class="desc-field" *ngIf="!item.get('productId')?.value">
+                <mat-form-field appearance="outline" class="col-desc" *ngIf="!item.get('productId')?.value">
                   <mat-label>Description</mat-label>
                   <input matInput formControlName="description">
                 </mat-form-field>
+                <div class="col-desc" *ngIf="item.get('productId')?.value"></div>
 
-                <mat-form-field appearance="outline" class="small-field">
+                <mat-form-field appearance="outline" class="col-serial">
+                  <mat-label>Serial No.</mat-label>
+                  <input matInput formControlName="serialNumber" placeholder="e.g. SN12345">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="col-warranty">
+                  <mat-label>Warranty</mat-label>
+                  <input matInput formControlName="warrantyPeriod" placeholder="e.g. 6 months">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="col-qty">
                   <mat-label>Qty</mat-label>
                   <input matInput type="number" formControlName="quantity" required min="1">
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="small-field">
+                <mat-form-field appearance="outline" class="col-price">
                   <mat-label>Unit Price</mat-label>
                   <input matInput type="number" formControlName="unitPrice" required min="0">
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="small-field">
+                <mat-form-field appearance="outline" class="col-gst">
                   <mat-label>GST %</mat-label>
                   <mat-select formControlName="gstPercentage">
                     <mat-option [value]="0">0%</mat-option>
@@ -183,9 +204,11 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
                   </mat-select>
                 </mat-form-field>
 
-                <button mat-icon-button color="warn" type="button" (click)="removeItem(i)" *ngIf="items.length > 1" style="margin-top: 4px;">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <div class="col-action">
+                  <button mat-icon-button color="warn" type="button" (click)="removeItem(i)" *ngIf="items.length > 1">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -254,11 +277,10 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
     </div>
   `,
   styles: [`
-    .form-card { padding: 24px; max-width: 1000px; margin: 0 auto; }
+    .form-card { padding: 24px; max-width: 1100px; margin: 0 auto; }
     .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
     .form-row mat-form-field { flex: 1; min-width: 200px; }
     .select-with-btn { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 240px; }
-    .product-select-container { display: flex; align-items: center; gap: 4px; flex: 2; min-width: 220px; }
     .add-inline-btn { margin-top: -18px; color: #3f51b5; transition: transform 0.2s ease; }
     .add-inline-btn:hover { transform: scale(1.15); }
     .add-inline-btn-small { margin-top: -18px; color: #3f51b5; transition: transform 0.2s ease; }
@@ -269,12 +291,41 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
     .section-title-row mat-icon { font-size: 20px; width: 20px; height: 20px; }
     .advanced-panel { margin-top: 16px; margin-bottom: 8px; box-shadow: none; border: 1px solid var(--border); }
     .advanced-panel mat-panel-title { display: flex; align-items: center; gap: 8px; font-weight: 500; }
-    .items-section { margin: 24px 0; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .items-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .items-section { margin: 24px 0; border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; }
+    .items-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .items-header h3 { margin: 0; font-size: 16px; font-weight: 500; }
-    .item-row { display: flex; gap: 12px; align-items: center; }
-    .desc-field { flex: 2; }
-    .small-field { flex: 1; min-width: 80px; }
+    /* Column header row */
+    .items-header-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 0.6fr 1fr 0.7fr 40px;
+      gap: 8px;
+      padding: 0 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary, #888);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+      min-width: 860px;
+    }
+    /* Data rows */
+    .item-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 0.6fr 1fr 0.7fr 40px;
+      gap: 8px;
+      align-items: center;
+      min-width: 860px;
+    }
+    .product-select-container { display: flex; align-items: center; gap: 2px; }
+    .col-product  { }
+    .col-desc     { }
+    .col-serial   { }
+    .col-warranty { }
+    .col-qty      { }
+    .col-price    { }
+    .col-gst      { }
+    .col-action   { display: flex; align-items: center; justify-content: center; margin-top: -18px; }
     .full-width { width: 100%; margin-top: 16px; }
     .summary-section { margin-top: 16px; padding: 16px; background: var(--surface-hover); border-radius: 8px; width: 300px; margin-left: auto; }
     .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
@@ -308,7 +359,7 @@ export class InvoiceFormComponent implements OnInit {
     private dialog: MatDialog
   ) {
     this.form = this.fb.group({
-      invoiceNumber: ['INV-' + Date.now().toString().slice(-6), Validators.required],
+      invoiceNumber: ['', Validators.required],
       customerId: ['', Validators.required],
       quotationId: [null],
       invoiceDate: [new Date().toISOString().substring(0,10), Validators.required],
@@ -455,6 +506,8 @@ export class InvoiceFormComponent implements OnInit {
         this.items.push(this.fb.group({
           productId: [item.product?.id || null],
           description: [item.description || '', Validators.required],
+          serialNumber: [item.serialNumber || ''],
+          warrantyPeriod: [item.warrantyPeriod || ''],
           quantity: [item.quantity, [Validators.required, Validators.min(1)]],
           unitPrice: [item.unitPrice, [Validators.required, Validators.min(0)]],
           discount: [item.discount || 0],
@@ -475,6 +528,8 @@ export class InvoiceFormComponent implements OnInit {
         this.items.push(this.fb.group({
           productId: [item.product?.id || null],
           description: [item.product?.name || item.description || '', Validators.required],
+          serialNumber: [''],
+          warrantyPeriod: [''],
           quantity: [item.quantity, [Validators.required, Validators.min(1)]],
           unitPrice: [item.rate || item.unitPrice || 0, [Validators.required, Validators.min(0)]],
           discount: [0],
@@ -491,6 +546,8 @@ export class InvoiceFormComponent implements OnInit {
     return this.fb.group({
       productId: [null],
       description: [''],
+      serialNumber: [''],
+      warrantyPeriod: [''],
       quantity: [1, [Validators.required, Validators.min(1)]],
       unitPrice: [0, [Validators.required, Validators.min(0)]],
       discount: [0],

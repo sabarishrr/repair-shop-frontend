@@ -14,6 +14,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
+import { WhatsAppService } from '../../../core/services/whatsapp.service';
 
 @Component({
   selector: 'app-payment-list',
@@ -106,6 +108,14 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
               <td mat-cell *matCellDef="let p" class="actions-cell">
+                <button mat-icon-button color="accent" (click)="sendEmail(p)"
+                  matTooltip="Send Email" [disabled]="!p.supplier?.email">
+                  <mat-icon>email</mat-icon>
+                </button>
+                <button mat-icon-button class="wa-icon-btn" (click)="sendWhatsApp(p)"
+                  matTooltip="WhatsApp" [disabled]="!p.supplier?.phone">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#25D366" width="20" height="20"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.102 1.518 5.826L0 24l6.336-1.491A11.933 11.933 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.385 14.518c-.295-.147-1.745-.86-2.016-.957-.27-.098-.467-.147-.663.147-.196.295-.76.957-.932 1.154-.172.196-.344.22-.638.074-.295-.147-1.244-.459-2.368-1.462-.875-.78-1.466-1.744-1.637-2.039-.172-.295-.018-.454.129-.6.132-.132.295-.344.442-.517.147-.172.196-.295.295-.491.098-.196.049-.368-.025-.515-.074-.147-.663-1.598-.908-2.187-.239-.574-.483-.496-.663-.505l-.565-.01c-.196 0-.516.074-.786.368-.27.295-1.032 1.008-1.032 2.459s1.057 2.852 1.204 3.048c.147.196 2.08 3.177 5.042 4.457.705.305 1.255.486 1.684.623.708.225 1.352.193 1.861.117.568-.085 1.745-.713 1.991-1.402.245-.688.245-1.277.172-1.402-.074-.123-.27-.196-.565-.344z"/></svg>
+                </button>
                 <a mat-icon-button color="primary" [routerLink]="['/payments/edit', p.id]" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
@@ -145,7 +155,8 @@ export class PaymentListComponent implements OnInit {
   constructor(
     private paymentService: PaymentService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private whatsapp: WhatsAppService
   ) {}
 
   ngOnInit(): void {
@@ -169,6 +180,31 @@ export class PaymentListComponent implements OnInit {
       (p.paymentNumber || '').toLowerCase().includes(q) ||
       (p.supplier?.name || '').toLowerCase().includes(q) ||
       (p.purchaseInvoice?.invoiceNumber || '').toLowerCase().includes(q)
+    );
+  }
+
+  sendEmail(p: Payment) {
+    this.dialog.open(EmailDialogComponent, {
+      data: {
+        toEmail: p.supplier?.email || '',
+        subject: `Payment Voucher ${p.paymentNumber}`,
+        message: `Dear ${p.supplier?.name || 'Supplier'},\n\nPlease find attached the payment voucher ${p.paymentNumber} for your records.\n\nThank you!`,
+        documentType: 'PAYMENT',
+        documentId: p.id!,
+        documentLabel: `Payment ${p.paymentNumber}`
+      },
+      width: '620px'
+    });
+  }
+
+  sendWhatsApp(p: Payment) {
+    if (!p.supplier?.phone) return;
+    this.whatsapp.sendPaymentVoucher(
+      p.supplier.phone,
+      p.supplier.name || 'Supplier',
+      p.paymentNumber!,
+      p.amount ?? 0,
+      'Us'
     );
   }
 

@@ -66,7 +66,8 @@ export const routes: Routes = [
         children: [
           { path: '', loadComponent: () => import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent) },
           { path: 'new', loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
-          { path: ':id/edit', loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent) }
+          { path: ':id/edit', loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
+          { path: 'adjustments', loadComponent: () => import('./features/products/stock-adjustment-list/stock-adjustment-list.component').then(m => m.StockAdjustmentListComponent) }
         ]
       },
       {
@@ -105,6 +106,24 @@ export const routes: Routes = [
           { path: 'new', loadComponent: () => import('./features/invoices/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent) },
           { path: ':id/edit', loadComponent: () => import('./features/invoices/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent) },
           { path: ':id', loadComponent: () => import('./features/invoices/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent) }
+        ]
+      },
+      {
+        path: 'credit-notes',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/credit-notes/credit-note-list/credit-note-list.component').then(m => m.CreditNoteListComponent) },
+          { path: 'new', loadComponent: () => import('./features/credit-notes/credit-note-form/credit-note-form.component').then(m => m.CreditNoteFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/credit-notes/credit-note-detail/credit-note-detail.component').then(m => m.CreditNoteDetailComponent) }
+        ]
+      },
+      {
+        path: 'debit-notes',
+        canActivate: [authGuard],
+        children: [
+          { path: '', loadComponent: () => import('./features/debit-notes/debit-note-list/debit-note-list.component').then(m => m.DebitNoteListComponent) },
+          { path: 'new', loadComponent: () => import('./features/debit-notes/debit-note-form/debit-note-form.component').then(m => m.DebitNoteFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/debit-notes/debit-note-detail/debit-note-detail.component').then(m => m.DebitNoteDetailComponent) }
         ]
       },
       {
