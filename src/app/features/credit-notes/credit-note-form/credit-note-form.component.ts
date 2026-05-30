@@ -265,8 +265,8 @@ export class CreditNoteFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.productService.getAll().subscribe(p => this.products = p);
-    this.customerService.getAll().subscribe(c => this.customers = c);
+    this.productService.getActive().subscribe(p => this.products = p);
+    this.customerService.getActive().subscribe(c => this.customers = c);
     this.invoiceService.getAll().subscribe(i => this.invoices = i);
 
     this.companyDetailsService.get().subscribe({

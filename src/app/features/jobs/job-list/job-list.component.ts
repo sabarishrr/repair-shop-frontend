@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { JobSheetService } from '../../../core/services/job-sheet.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { JobSheet, JOB_STATUSES, JobStatus } from '../../../core/models/job-sheet.model';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
@@ -113,10 +114,12 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
                 <a mat-icon-button [routerLink]="['/jobs', job.id]" color="accent" matTooltip="View">
                   <mat-icon>visibility</mat-icon>
                 </a>
-                <a mat-icon-button [routerLink]="['/jobs', job.id, 'edit']" color="primary" matTooltip="Edit">
+                <a mat-icon-button [routerLink]="['/jobs', job.id, 'edit']" color="primary" matTooltip="Edit"
+                   *ngIf="canEditJob(job)">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="delete(job)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="delete(job)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -154,6 +157,7 @@ export class JobListComponent implements OnInit {
 
   constructor(
     private svc: JobSheetService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -172,6 +176,18 @@ export class JobListComponent implements OnInit {
   onStatusFilter(value: string): void {
     this.statusQ = value;
     this.load();
+  }
+
+  canEditJob(job: JobSheet): boolean {
+    if (job.status === 'DELIVERED') {
+      const user = this.authService.getCurrentUser();
+      if (user?.role === 'TECHNICIAN') return false;
+    }
+    return true;
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   delete(job: JobSheet): void {

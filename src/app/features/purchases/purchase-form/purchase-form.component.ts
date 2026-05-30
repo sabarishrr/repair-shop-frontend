@@ -10,6 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PurchaseService } from '../../../core/services/purchase.service';
 import { SupplierService } from '../../../core/services/supplier.service';
 import { ProductService, Product } from '../../../core/services/product.service';
@@ -23,7 +24,8 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatCardModule, MatSnackBarModule, MatDialogModule
+    MatButtonModule, MatIconModule, MatCardModule, MatSnackBarModule, MatDialogModule,
+    MatProgressBarModule
   ],
   template: `
     <div class="page-container">
@@ -35,6 +37,24 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
         <a mat-stroked-button routerLink="/purchases">
           <mat-icon>arrow_back</mat-icon> Back
         </a>
+      </div>
+
+      <!-- Premium Drag & Drop Uploader -->
+      <div class="uploader-container no-print" *ngIf="!editMode" style="margin-bottom: 24px;">
+        <mat-card class="uploader-card">
+          <div class="uploader-body" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+            <mat-icon class="upload-icon">cloud_upload</mat-icon>
+            <div class="upload-text">
+              <h3>Auto-Fill Form from Invoice PDF</h3>
+              <p>Drag and drop your vendor invoice PDF here, or click to browse (100% Offline & Private)</p>
+            </div>
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept="application/pdf" style="display: none;">
+            <div class="extracting-spinner" *ngIf="extracting">
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+              <span>Analyzing PDF layout & mapping items...</span>
+            </div>
+          </div>
+        </mat-card>
       </div>
 
       <mat-card class="form-card">
@@ -158,11 +178,22 @@ import { ProductFormComponent } from '../../products/product-form/product-form.c
     .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
     .summary-row.grand-total { font-weight: 600; font-size: 18px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
     .form-actions { display: flex; justify-content: flex-end; margin-top: 24px; }
+    
+    .uploader-container { max-width: 900px; margin: 0 auto; }
+    .uploader-card { border: 2px dashed var(--border) !important; background: var(--bg-card) !important; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .uploader-card:hover { border-color: var(--accent-blue) !important; background: rgba(88, 166, 255, 0.03) !important; }
+    .uploader-body { display: flex; align-items: center; justify-content: center; padding: 24px; gap: 16px; min-height: 80px; position: relative; }
+    .upload-icon { font-size: 32px !important; width: 32px !important; height: 32px !important; color: var(--accent-blue); }
+    .upload-text h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .upload-text p { margin: 0; font-size: 12px; color: var(--text-secondary); }
+    .extracting-spinner { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; font-size: 12px; color: var(--text-secondary); padding: 0 20px; }
+    .extracting-spinner mat-progress-bar { width: 250px; border-radius: 4px; }
   `]
 })
 export class PurchaseFormComponent implements OnInit {
   form: FormGroup;
   loading = false;
+  extracting = false;
   products: Product[] = [];
   suppliers: Supplier[] = [];
   editMode = false;
@@ -192,8 +223,8 @@ export class PurchaseFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.productService.getAll().subscribe(p => this.products = p);
-    this.supplierService.getAll().subscribe(s => this.suppliers = s);
+    this.productService.getActive().subscribe(p => this.products = p);
+    this.supplierService.getActive().subscribe(s => this.suppliers = s);
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -293,7 +324,7 @@ export class PurchaseFormComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((newSupplier: Supplier) => {
       if (newSupplier && newSupplier.id) {
-        this.supplierService.getAll().subscribe(all => {
+        this.supplierService.getActive().subscribe(all => {
           this.suppliers = all;
           this.form.patchValue({ supplierId: newSupplier.id });
         });
@@ -311,7 +342,7 @@ export class PurchaseFormComponent implements OnInit {
     dialogRef.afterClosed().subscribe((newProduct: Product) => {
       if (newProduct && newProduct.id) {
         const prodId = newProduct.id;
-        this.productService.getAll().subscribe(all => {
+        this.productService.getActive().subscribe(all => {
           this.products = all;
           this.items.at(index).patchValue({ productId: prodId });
           this.onProductSelect(index, prodId);
@@ -336,6 +367,72 @@ export class PurchaseFormComponent implements OnInit {
       error: (err) => {
         this.snackBar.open(`Error ${this.editMode ? 'updating' : 'recording'} purchase: ` + (err.error?.message || 'Unknown error'), 'OK', { duration: 5000 });
         this.loading = false;
+      }
+    });
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.type === 'application/pdf') {
+        this.processFile(file);
+      } else {
+        this.snackBar.open('Please select a valid PDF file.', 'OK', { duration: 3000 });
+      }
+    }
+  }
+
+  onFileSelected(event: any) {
+    if (event.target.files && event.target.files.length > 0) {
+      this.processFile(event.target.files[0]);
+    }
+  }
+
+  processFile(file: File) {
+    this.extracting = true;
+    this.purchaseService.extractInvoice(file).subscribe({
+      next: (res) => {
+        this.extracting = false;
+        
+        // Patch main form controls
+        this.form.patchValue({
+          invoiceNumber: res.invoiceNumber || '',
+          invoiceDate: res.invoiceDate || new Date().toISOString().substring(0,10),
+          supplierId: res.supplierId || ''
+        });
+
+        // Patch FormArray
+        if (res.items && res.items.length > 0) {
+          this.items.clear();
+          res.items.forEach((item: any) => {
+            this.items.push(this.fb.group({
+              productId: [item.productId || '', Validators.required],
+              quantity: [item.quantity || 1, [Validators.required, Validators.min(1)]],
+              rate: [item.rate || 0, [Validators.required, Validators.min(0)]],
+              discount: [0]
+            }));
+          });
+        }
+        this.calculateTotals();
+
+        // Check if any items are unmatched to DB products
+        const hasUnmatched = res.items && res.items.some((item: any) => !item.productId);
+        if (hasUnmatched) {
+          this.snackBar.open('Invoice extracted! Please select matching products manually for unmatched items to complete.', 'OK', { duration: 6000 });
+        } else {
+          this.snackBar.open('Invoice extracted and mapped successfully!', 'OK', { duration: 3000 });
+        }
+      },
+      error: (err) => {
+        this.extracting = false;
+        console.error('Extraction error', err);
+        const errMsg = err.error?.message || 'Offline parser failed to find text layers.';
+        this.snackBar.open('Extraction failed: ' + errMsg, 'OK', { duration: 5000 });
       }
     });
   }

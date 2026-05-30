@@ -13,5 +13,6 @@ export interface Customer {
   pinCode?: string;
   shippingAddress?: string;
   shippingPinCode?: string;
+  active?: boolean;
   createdAt?: string;
 }

@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
@@ -119,7 +120,8 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
                 <a mat-icon-button color="primary" [routerLink]="['/payments/edit', p.id]" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="deletePayment(p)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="deletePayment(p)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -154,6 +156,7 @@ export class PaymentListComponent implements OnInit {
 
   constructor(
     private paymentService: PaymentService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private whatsapp: WhatsAppService
@@ -206,6 +209,10 @@ export class PaymentListComponent implements OnInit {
       p.amount ?? 0,
       'Us'
     );
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   deletePayment(p: Payment) {

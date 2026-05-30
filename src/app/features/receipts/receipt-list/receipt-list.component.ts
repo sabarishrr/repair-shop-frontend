@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ReceiptService } from '../../../core/services/receipt.service';
 import { Receipt } from '../../../core/models/receipt.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
@@ -121,7 +122,8 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
                 <a mat-icon-button color="primary" [routerLink]="['/receipts/edit', r.id]" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="deleteReceipt(r)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="deleteReceipt(r)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -156,6 +158,7 @@ export class ReceiptListComponent implements OnInit {
 
   constructor(
     private receiptService: ReceiptService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private whatsapp: WhatsAppService
@@ -208,6 +211,10 @@ export class ReceiptListComponent implements OnInit {
       r.amount ?? 0,
       'Us'
     );
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   deleteReceipt(r: Receipt) {

@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -96,6 +97,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
                 </a>
                 <button mat-icon-button color="warn"
                         (click)="delete(u)"
+                        *ngIf="isAdmin()"
                         [disabled]="u.username === 'admin'"
                         matTooltip="{{ u.username === 'admin' ? 'Cannot delete default admin' : 'Delete User' }}">
                   <mat-icon>delete</mat-icon>
@@ -155,6 +157,7 @@ export class UserListComponent implements OnInit {
 
   constructor(
     private svc: UserService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -179,6 +182,10 @@ export class UserListComponent implements OnInit {
       u.username.toLowerCase().includes(q) ||
       (u.role?.toLowerCase() ?? '').includes(q)
     );
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   delete(u: User): void {

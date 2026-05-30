@@ -383,8 +383,8 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.productService.getAll().subscribe(p => this.products = p);
-    this.customerService.getAll().subscribe(c => this.customers = c);
+    this.productService.getActive().subscribe(p => this.products = p);
+    this.customerService.getActive().subscribe(c => this.customers = c);
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -584,7 +584,7 @@ export class InvoiceFormComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((newCustomer: Customer) => {
       if (newCustomer && newCustomer.id) {
-        this.customerService.getAll().subscribe(all => {
+        this.customerService.getActive().subscribe(all => {
           this.customers = all;
           this.form.patchValue({ customerId: newCustomer.id });
         });
@@ -602,7 +602,7 @@ export class InvoiceFormComponent implements OnInit {
     dialogRef.afterClosed().subscribe((newProduct: Product) => {
       if (newProduct && newProduct.id) {
         const prodId = newProduct.id;
-        this.productService.getAll().subscribe(all => {
+        this.productService.getActive().subscribe(all => {
           this.products = all;
           this.items.at(index).patchValue({ productId: prodId });
           this.onProductSelect(index, prodId);

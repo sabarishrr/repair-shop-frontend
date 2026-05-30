@@ -17,7 +17,8 @@ import { JobSheetService } from '../../../core/services/job-sheet.service';
 import { CustomerService } from '../../../core/services/customer.service';
 import { LookupService, Brand, CommonIssue } from '../../../core/services/lookup.service';
 import { UserService } from '../../../core/services/user.service';
-import { JOB_STATUSES } from '../../../core/models/job-sheet.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { JOB_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS } from '../../../core/models/job-sheet.model';
 import { Customer } from '../../../core/models/customer.model';
 import { User } from '../../../core/models/user.model';
 import { CustomerFormComponent } from '../../customers/customer-form/customer-form.component';
@@ -43,6 +44,11 @@ import { CustomerFormComponent } from '../../customers/customer-form/customer-fo
           <mat-icon>arrow_back</mat-icon>
           Back
         </a>
+      </div>
+
+      <div *ngIf="isDeliveredLocked" class="delivered-warning">
+        <mat-icon>lock</mat-icon>
+        <span>This job has been delivered. Technicians cannot edit delivered jobs.</span>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()">
@@ -176,6 +182,21 @@ import { CustomerFormComponent } from '../../customers/customer-form/customer-fo
             </mat-form-field>
 
             <mat-form-field appearance="outline">
+              <mat-label>Payment Status</mat-label>
+              <mat-select formControlName="paymentStatus">
+                <mat-option *ngFor="let ps of paymentStatuses" [value]="ps.value">{{ ps.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Payment Method</mat-label>
+              <mat-select formControlName="paymentMethod">
+                <mat-option value="">-- Select Method --</mat-option>
+                <mat-option *ngFor="let pm of paymentMethods" [value]="pm.value">{{ pm.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
               <mat-label>Status</mat-label>
               <mat-select formControlName="status">
                 <mat-option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</mat-option>
@@ -293,6 +314,20 @@ import { CustomerFormComponent } from '../../customers/customer-form/customer-fo
       gap: 12px;
       margin-bottom: 40px;
     }
+
+    .delivered-warning {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: rgba(255, 152, 0, 0.12);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      border-radius: 8px;
+      color: #ff9800;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
   `]
 })
 export class JobFormComponent implements OnInit {
@@ -300,10 +335,13 @@ export class JobFormComponent implements OnInit {
   brands: Brand[] = [];
   technicians: User[] = [];
   issues: CommonIssue[] = [];
-  statuses    = JOB_STATUSES;
+  statuses        = JOB_STATUSES;
+  paymentStatuses = PAYMENT_STATUSES;
+  paymentMethods  = PAYMENT_METHODS;
   deviceTypes = ['Laptop', 'Desktop', 'Printer', 'Monitor', 'Phone', 'Tablet', 'Other'];
   isEdit      = false;
   loading     = false;
+  isDeliveredLocked = false;
   jobId?: number;
 
   form = this.fb.group({
@@ -318,6 +356,8 @@ export class JobFormComponent implements OnInit {
     estimatedCost:      [null as number | null],
     finalCost:          [null as number | null],
     status:             ['RECEIVED'],
+    paymentStatus:      ['UNPAID'],
+    paymentMethod:      [''],
     notes:              [''],
     materialUsed:       [''],
     actionTaken:        [''],
@@ -331,6 +371,7 @@ export class JobFormComponent implements OnInit {
     private custSvc: CustomerService,
     private lookupSvc: LookupService,
     private userService: UserService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
@@ -353,13 +394,21 @@ export class JobFormComponent implements OnInit {
           customerId:   j.customer?.id ?? '',
           receivedDate: j.receivedDate ?? '',
           deliveryDate: j.deliveryDate ?? '',
+          paymentStatus: j.paymentStatus ?? 'UNPAID',
+          paymentMethod: j.paymentMethod ?? '',
         });
+        // Lock form for technicians on delivered jobs
+        const user = this.authService.getCurrentUser();
+        if (j.status === 'DELIVERED' && user?.role === 'TECHNICIAN') {
+          this.isDeliveredLocked = true;
+          this.form.disable();
+        }
       });
     }
   }
 
   loadCustomers() {
-    this.custSvc.getAll().subscribe(c => (this.customers = c));
+    this.custSvc.getActive().subscribe(c => (this.customers = c));
   }
 
   addCustomer() {

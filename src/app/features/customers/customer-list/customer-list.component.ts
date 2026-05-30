@@ -7,10 +7,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CustomerService } from '../../../core/services/customer.service';
 import { Customer } from '../../../core/models/customer.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -20,6 +23,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     CommonModule, RouterModule,
     MatTableModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCardModule,
+    MatSlideToggleModule, MatTooltipModule,
     MatSnackBarModule, MatDialogModule,
   ],
   template: `
@@ -36,7 +40,6 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
       </div>
 
       <mat-card class="list-card">
-        <!-- Search toolbar -->
         <div class="table-toolbar">
           <div class="toolbar-left">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic" floatLabel="always">
@@ -51,15 +54,14 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
           </span>
         </div>
 
-        <!-- Table -->
         <div class="table-wrapper">
-          <table mat-table [dataSource]="customers" class="customer-table">
+          <table mat-table [dataSource]="customers" class="data-table">
 
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
               <td mat-cell *matCellDef="let c">
                 <div class="name-cell">
-                  <div class="avatar">{{ c.name.charAt(0).toUpperCase() }}</div>
+                  <div class="avatar-circle">{{ c.name.charAt(0).toUpperCase() }}</div>
                   <span>{{ c.name }}</span>
                 </div>
               </td>
@@ -80,20 +82,37 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
               <td mat-cell *matCellDef="let c">{{ c.address || '—' }}</td>
             </ng-container>
 
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="toggle-cell">Status</th>
+              <td mat-cell *matCellDef="let c" class="toggle-cell">
+                <mat-slide-toggle
+                  [checked]="c.active !== false"
+                  (change)="toggleActive(c)"
+                  color="primary"
+                  [matTooltip]="c.active !== false ? 'Active — click to deactivate' : 'Inactive — click to activate'">
+                </mat-slide-toggle>
+                <span class="pill-badge" [class.active]="c.active !== false" [class.inactive]="c.active === false">
+                  {{ c.active !== false ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
               <td mat-cell *matCellDef="let c" class="actions-cell">
                 <a mat-icon-button [routerLink]="['/customers/edit', c.id]" color="primary" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="delete(c)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="delete(c)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                [class.row-inactive]="row.active === false"></tr>
 
             <tr class="empty-row" *matNoDataRow>
               <td [attr.colspan]="displayedColumns.length">
@@ -109,17 +128,15 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
       </mat-card>
     </div>
   `,
-  styles: [`
-    .name-cell { display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
-  `]
+  styles: []
 })
 export class CustomerListComponent implements OnInit {
   customers: Customer[] = [];
-  displayedColumns = ['name', 'phone', 'email', 'address', 'actions'];
+  displayedColumns = ['name', 'phone', 'email', 'address', 'status', 'actions'];
 
   constructor(
     private svc: CustomerService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -133,6 +150,20 @@ export class CustomerListComponent implements OnInit {
   onSearch(e: Event): void {
     const q = (e.target as HTMLInputElement).value.trim();
     this.load(q || undefined);
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
+  }
+
+  toggleActive(c: Customer): void {
+    this.svc.toggleActive(c.id!).subscribe(updated => {
+      c.active = updated.active;
+      this.snackBar.open(
+        `Customer "${c.name}" ${updated.active ? 'activated' : 'deactivated'}.`,
+        'OK', { duration: 3000 }
+      );
+    });
   }
 
   delete(c: Customer): void {

@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DebitNoteService } from '../../../core/services/debit-note.service';
 import { DebitNote } from '../../../core/models/debit-note.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-debit-note-list',
@@ -121,7 +122,8 @@ import { DebitNote } from '../../../core/models/debit-note.model';
                 <button mat-icon-button color="warn" (click)="cancelNote(note)" *ngIf="note.status === 'ACTIVE'" matTooltip="Cancel Note">
                   <mat-icon>block</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteNote(note)" matTooltip="Delete Note">
+                <button mat-icon-button color="warn" (click)="deleteNote(note)" matTooltip="Delete Note"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -157,6 +159,7 @@ export class DebitNoteListComponent implements OnInit {
 
   constructor(
     private debitNoteService: DebitNoteService,
+    private authService: AuthService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -207,6 +210,10 @@ export class DebitNoteListComponent implements OnInit {
         }
       });
     }
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   deleteNote(note: DebitNote) {

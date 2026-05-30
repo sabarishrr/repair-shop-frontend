@@ -243,8 +243,8 @@ export class QuotationFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.customerSvc.getAll().subscribe(c => this.customers = c);
-    this.productSvc.getAll().subscribe(p => this.products = p);
+    this.customerSvc.getActive().subscribe(c => this.customers = c);
+    this.productSvc.getActive().subscribe(p => this.products = p);
 
     const id = this.route.snapshot.params['id'];
     if (id) {

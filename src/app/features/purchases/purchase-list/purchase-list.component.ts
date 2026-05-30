@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PurchaseService } from '../../../core/services/purchase.service';
 import { PurchaseInvoice } from '../../../core/models/purchase.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -103,7 +104,8 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
                 <a mat-icon-button color="primary" [routerLink]="['/purchases', p.id, 'edit']" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="deletePurchase(p)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="deletePurchase(p)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -126,9 +128,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
       </mat-card>
     </div>
   `,
-  styles: [`
-    .text-muted { color: var(--text-muted); }
-  `]
+  styles: []
 })
 export class PurchaseListComponent implements OnInit {
   purchases: PurchaseInvoice[] = [];
@@ -138,6 +138,7 @@ export class PurchaseListComponent implements OnInit {
 
   constructor(
     private purchaseService: PurchaseService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -163,6 +164,10 @@ export class PurchaseListComponent implements OnInit {
       (p.invoiceNumber || '').toLowerCase().includes(q) ||
       (p.supplier?.name || '').toLowerCase().includes(q)
     );
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   deletePurchase(p: PurchaseInvoice) {

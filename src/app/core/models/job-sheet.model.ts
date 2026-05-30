@@ -8,6 +8,10 @@ export type JobStatus =
   | 'READY'
   | 'DELIVERED';
 
+export type PaymentStatus = 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';
+
+export type PaymentMethod = 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER' | 'OTHER';
+
 export interface JobSheet {
   id?: number;
   jobNumber?: string;
@@ -22,6 +26,8 @@ export interface JobSheet {
   estimatedCost?: number;
   finalCost?: number;
   status: JobStatus;
+  paymentStatus?: PaymentStatus;
+  paymentMethod?: PaymentMethod;
   notes?: string;
   materialUsed?: string;
   actionTaken?: string;
@@ -54,3 +60,18 @@ export const JOB_STATUSES: { value: JobStatus; label: string }[] = [
   { value: 'READY',          label: 'Ready for Pickup' },
   { value: 'DELIVERED',      label: 'Delivered' },
 ];
+
+export const PAYMENT_STATUSES: { value: PaymentStatus; label: string }[] = [
+  { value: 'UNPAID',         label: 'Unpaid' },
+  { value: 'PARTIALLY_PAID', label: 'Partially Paid' },
+  { value: 'PAID',           label: 'Paid' },
+];
+
+export const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'CASH',           label: 'Cash' },
+  { value: 'UPI',            label: 'UPI' },
+  { value: 'CARD',           label: 'Card' },
+  { value: 'BANK_TRANSFER',  label: 'Bank Transfer' },
+  { value: 'OTHER',          label: 'Other' },
+];
+

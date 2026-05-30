@@ -394,7 +394,19 @@ html, body {
   &.cash    { background: rgba(57,208,200,.12); color: #39d0c8; border: 1px solid rgba(57,208,200,.2); }
   &.credit  { background: rgba(163,113,247,.12); color: #a371f7; border: 1px solid rgba(163,113,247,.2); }
   &.method  { background: rgba(88,166,255,.12); color: #58a6ff; border: 1px solid rgba(88,166,255,.2); }
+  &.active  { background: rgba(63,185,80,.15); color: #3fb950; &::before { background: #3fb950; } }
+  &.inactive{ background: rgba(110,118,129,.15); color: #8b949e; &::before { background: #8b949e; } }
 }
+
+// ── Inactive row dimming ──────────────────────────────────────
+.row-inactive {
+  opacity: 0.5;
+  .mat-mdc-cell { color: var(--text-muted) !important; }
+}
+
+// ── Active toggle column ──────────────────────────────────────
+.toggle-cell { min-width: 100px; }
+
 
 // ── Clickable row ID links ────────────────────────────────────
 .record-id {

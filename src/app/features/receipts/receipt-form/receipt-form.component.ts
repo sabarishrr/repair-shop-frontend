@@ -171,7 +171,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.customerService.getAll().subscribe(c => this.customers = c);
+    this.customerService.getActive().subscribe(c => this.customers = c);
     this.invoiceService.getAll().subscribe(i => {
       this.invoices = i;
       this.filteredInvoices = i;

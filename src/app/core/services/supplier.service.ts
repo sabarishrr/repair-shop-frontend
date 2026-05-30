@@ -13,6 +13,14 @@ export class SupplierService {
     return this.http.get<Supplier[]>(this.apiUrl);
   }
 
+  getActive(): Observable<Supplier[]> {
+    return this.http.get<Supplier[]>(this.apiUrl, { params: { activeOnly: 'true' } });
+  }
+
+  toggleActive(id: number): Observable<Supplier> {
+    return this.http.patch<Supplier>(`${this.apiUrl}/${id}/toggle-active`, {});
+  }
+
   getById(id: number): Observable<Supplier> {
     return this.http.get<Supplier>(`${this.apiUrl}/${id}`);
   }

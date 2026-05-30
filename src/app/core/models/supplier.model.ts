@@ -6,4 +6,5 @@ export interface Supplier {
   email?: string;
   address?: string;
   state?: any;
+  active?: boolean;
 }

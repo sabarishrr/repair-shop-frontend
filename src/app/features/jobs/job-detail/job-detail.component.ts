@@ -11,6 +11,7 @@ import { JobSheetService } from '../../../core/services/job-sheet.service';
 import { JobSheet } from '../../../core/models/job-sheet.model';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CompanyDetailsService, CompanyDetails } from '../../../core/services/company-details.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { EmailDialogComponent } from '../../../shared/email-dialog/email-dialog.component';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
 
@@ -45,7 +46,8 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
           <button mat-stroked-button (click)="print()">
             <mat-icon>print</mat-icon> Print
           </button>
-          <a mat-raised-button color="primary" [routerLink]="['/jobs', job.id, 'edit']">
+          <a mat-raised-button color="primary" [routerLink]="['/jobs', job.id, 'edit']"
+             *ngIf="canEdit()">
             <mat-icon>edit</mat-icon> Edit Job
           </a>
         </div>
@@ -64,11 +66,10 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
           </div>
           
           <div class="doc-title">
-            <img [src]="getQrCodeUrl(job, company)" alt="QR Code" class="job-qr" />
+            <img [src]="getJobDetailsQrUrl(job)" alt="Job QR Code" class="job-qr" />
             <h1 *ngIf="job.status !== 'DELIVERED'">Job Sheet</h1>
             <h1 *ngIf="job.status === 'DELIVERED'">CASH BILL</h1>
-            <p class="doc-id" *ngIf="job.status !== 'DELIVERED'">#JOB-{{ job.id }}</p>
-            <p class="doc-id" *ngIf="job.status === 'DELIVERED'">#JOB-{{ job.id }}</p>
+            <p class="doc-id">#JOB-{{ job.id }}</p>
             <p class="doc-date">Date: {{ job.createdAt | date:'mediumDate' }}</p>
           </div>
         </div>
@@ -132,16 +133,28 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
                <p>Status: {{ job.status }}</p>
                <p>Technician: {{ job.technician || 'Unassigned' }}</p>
              </div>
+             <div class="term-group">
+               <strong>Payment:</strong>
+               <p>Payment Status: {{ formatPaymentStatus(job.paymentStatus) }}</p>
+               <p *ngIf="job.paymentMethod">Payment Method: {{ formatPaymentMethod(job.paymentMethod) }}</p>
+             </div>
           </div>
           
-          <div class="totals-box">
-            <div class="total-row">
-              <span>Estimated Cost:</span>
-              <span>Rs. {{ job.estimatedCost || '0' }}</span>
+          <div class="totals-and-qr">
+            <div class="totals-box">
+              <div class="total-row">
+                <span>Estimated Cost:</span>
+                <span>Rs. {{ job.estimatedCost || '0' }}</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>Final Cost:</span>
+                <span>Rs. {{ job.finalCost || 'TBD' }}</span>
+              </div>
             </div>
-            <div class="total-row grand-total">
-              <span>Final Cost:</span>
-              <span>Rs. {{ job.finalCost || 'TBD' }}</span>
+
+            <div *ngIf="job.status === 'DELIVERED' && company?.upiId" class="upi-qr-section">
+              <img [src]="getUpiPaymentQrUrl(job, company!)" alt="UPI Payment QR" class="upi-qr" />
+              <p class="scan-to-pay">Scan to Pay</p>
             </div>
           </div>
         </div>
@@ -195,9 +208,14 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
     .term-group strong { font-size: 14px; color: #000; }
     .term-group p { font-size: 13px; color: #333; margin: 4px 0 0; white-space: pre-wrap; }
     
+    .totals-and-qr { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
     .totals-box { width: 300px; border: 1px solid #ccc; padding: 16px; border-radius: 4px; background: #fafafa; }
     .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #333; }
     .total-row.grand-total { border-top: 1px solid #ccc; padding-top: 8px; margin-top: 8px; font-size: 18px; font-weight: bold; color: #000; }
+
+    .upi-qr-section { display: flex; flex-direction: column; align-items: center; padding: 12px; border: 1px solid #ccc; border-radius: 8px; background: #fafafa; }
+    .upi-qr { width: 120px; height: 120px; }
+    .scan-to-pay { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #000; text-align: center; }
 
     .signatures { display: flex; justify-content: space-between; margin-top: 60px; }
     .sig-box { width: 200px; text-align: center; }
@@ -216,11 +234,13 @@ import { WhatsAppService } from '../../../core/services/whatsapp.service';
 export class JobDetailComponent implements OnInit {
   job?: JobSheet;
   company?: CompanyDetails;
+  currentUser: { username: string; fullName: string; role: string } | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private svc: JobSheetService,
     private companySvc: CompanyDetailsService,
+    private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -228,6 +248,7 @@ export class JobDetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.companySvc.get().subscribe(c => this.company = c);
     const id = this.route.snapshot.params['id'];
     if (id) {
@@ -239,6 +260,14 @@ export class JobDetailComponent implements OnInit {
         }
       });
     }
+  }
+
+  canEdit(): boolean {
+    if (!this.job) return false;
+    if (this.job.status === 'DELIVERED' && this.currentUser?.role === 'TECHNICIAN') {
+      return false;
+    }
+    return true;
   }
 
   sendEmail(): void {
@@ -272,16 +301,38 @@ export class JobDetailComponent implements OnInit {
     window.print();
   }
 
-  getQrCodeUrl(job: JobSheet, company?: CompanyDetails): string {
+  formatPaymentStatus(status?: string): string {
+    const map: Record<string, string> = {
+      'UNPAID': 'Unpaid',
+      'PARTIALLY_PAID': 'Partially Paid',
+      'PAID': 'Paid',
+    };
+    return status ? (map[status] || status) : 'Unpaid';
+  }
+
+  formatPaymentMethod(method?: string): string {
+    const map: Record<string, string> = {
+      'CASH': 'Cash',
+      'UPI': 'UPI',
+      'CARD': 'Card',
+      'BANK_TRANSFER': 'Bank Transfer',
+      'OTHER': 'Other',
+    };
+    return method ? (map[method] || method) : '—';
+  }
+
+  /** QR 1: Job details — always shown in top-right of print header */
+  getJobDetailsQrUrl(job: JobSheet): string {
     if (!job) return '';
-    if (company?.upiId) {
-      // UPI QR — include amount if available
-      const amount = job.finalCost ? `&am=${job.finalCost}` : '';
-      const upiUrl = `upi://pay?pa=${encodeURIComponent(company.upiId)}&pn=${encodeURIComponent(company.companyName || 'Shop')}${amount}&cu=INR&tn=${encodeURIComponent('JOB-' + job.id)}`;
-      return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}&bgcolor=ffffff&color=000000`;
-    }
-    // Fallback: job info QR
-    const data = `Job: JOB-${job.id}\nStatus: ${job.status}\nCustomer: ${job.customer?.name}\nPhone: ${job.customer?.phone}`;
+    const data = `Customer: ${job.customer?.name || 'N/A'}\nCustomer ID: ${job.customer?.id || 'N/A'}\nJob No: JOB-${job.id}\nStatus: ${job.status}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data)}&bgcolor=ffffff`;
+  }
+
+  /** QR 2: UPI payment — only shown when status is DELIVERED and company has UPI ID */
+  getUpiPaymentQrUrl(job: JobSheet, company: CompanyDetails): string {
+    if (!job || !company?.upiId) return '';
+    const amount = job.finalCost ? `&am=${job.finalCost}` : '';
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(company.upiId)}&pn=${encodeURIComponent(company.companyName || 'Shop')}${amount}&cu=INR&tn=${encodeURIComponent('JOB-' + job.id)}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}&bgcolor=ffffff&color=000000`;
   }
 }

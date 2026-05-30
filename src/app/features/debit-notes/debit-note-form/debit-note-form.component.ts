@@ -265,8 +265,8 @@ export class DebitNoteFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.productService.getAll().subscribe(p => this.products = p);
-    this.supplierService.getAll().subscribe(s => this.suppliers = s);
+    this.productService.getActive().subscribe(p => this.products = p);
+    this.supplierService.getActive().subscribe(s => this.suppliers = s);
     this.purchaseService.getAll().subscribe(pur => this.purchases = pur);
 
     this.companyDetailsService.get().subscribe({

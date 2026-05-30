@@ -14,6 +14,14 @@ export class CustomerService {
     return this.http.get<Customer[]>(this.API, { params });
   }
 
+  getActive(): Observable<Customer[]> {
+    return this.http.get<Customer[]>(this.API, { params: new HttpParams().set('activeOnly', 'true') });
+  }
+
+  toggleActive(id: number): Observable<Customer> {
+    return this.http.patch<Customer>(`${this.API}/${id}/toggle-active`, {});
+  }
+
   getById(id: number): Observable<Customer> {
     return this.http.get<Customer>(`${this.API}/${id}`);
   }

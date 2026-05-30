@@ -15,6 +15,7 @@ export interface Product {
   mrp?: number;
   wholesalePrice?: number;
   reorderLevel?: number;
+  active?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +26,16 @@ export class ProductService {
 
   getAll(search?: string): Observable<Product[]> {
     return this.http.get<Product[]>(this.API, { params: search ? { search } : {} });
+  }
+
+  getActive(search?: string): Observable<Product[]> {
+    const params: any = { activeOnly: 'true' };
+    if (search) params['search'] = search;
+    return this.http.get<Product[]>(this.API, { params });
+  }
+
+  toggleActive(id: number): Observable<Product> {
+    return this.http.patch<Product>(`${this.API}/${id}/toggle-active`, {});
   }
 
   getById(id: number): Observable<Product> {

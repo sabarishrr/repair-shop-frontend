@@ -172,7 +172,7 @@ export class PaymentFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.supplierService.getAll().subscribe(s => this.suppliers = s);
+    this.supplierService.getActive().subscribe(s => this.suppliers = s);
     this.purchaseService.getAll().subscribe(p => {
       this.purchases = p;
       this.filteredPurchases = p;

@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { QuotationService, Quotation } from '../../../core/services/quotation.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -87,7 +88,8 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
                 <a mat-icon-button color="primary" [routerLink]="['/quotations', q.id, 'edit']" matTooltip="Edit">
                   <mat-icon>edit</mat-icon>
                 </a>
-                <button mat-icon-button color="warn" (click)="deleteQuotation(q)" matTooltip="Delete">
+                <button mat-icon-button color="warn" (click)="deleteQuotation(q)" matTooltip="Delete"
+                        *ngIf="isAdmin()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -124,6 +126,7 @@ export class QuotationListComponent implements OnInit {
 
   constructor(
     private svc: QuotationService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -150,6 +153,10 @@ export class QuotationListComponent implements OnInit {
       qt.customer.phone.includes(q) ||
       `#qt-${qt.id}`.includes(q)
     );
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role === 'ADMIN';
   }
 
   deleteQuotation(q: Quotation) {
